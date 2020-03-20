@@ -1,0 +1,36 @@
+{
+  "name": "@aradzie/fsx-file",
+  "version": "0.0.1",
+  "description": "A library of classes which provide a higher-level object-oriented API around the node's `fs` module.",
+  "homepage": "https://github.com/aradzie/fsx/blob/master/packages/fsx-file#readme",
+  "license": "MIT",
+  "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aradzie/fsx.git",
+    "directory": "packages/fsx-file"
+  },
+  "engines": {
+    "node": ">=12.13"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "module": "lib-esm/index.js",
+  "dependencies": {
+    "tslib": "^1.11.1",
+    "@aradzie/fsx": "*"
+  },
+  "scripts": {
+    "compile": "rm -fr lib; rm -fr lib-esm; tsc; tsc -b tsconfig-esm.json",
+    "test": "ava"
+  },
+  "ava": {
+    "files": [
+      "lib/**/*.test.js"
+    ],
+    "serial": true
+  }
+}
