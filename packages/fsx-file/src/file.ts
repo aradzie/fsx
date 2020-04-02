@@ -163,7 +163,7 @@ export class Dir extends Entry {
 }
 
 export class File extends Entry {
-  static of(name: string | File): File {
+  static from(name: string | File): File {
     if (name instanceof File) {
       return name;
     } else {
@@ -229,7 +229,7 @@ export class File extends Entry {
     options?: ReadJsonOptions | Encoding,
     reviver?: (key: any, value: any) => any,
   ): Promise<unknown> {
-    if (options && typeof options === "object") {
+    if (options != null && typeof options === "object") {
       reviver = reviver ?? options.reviver;
     }
     return JSON.parse(String(await this.read(options)), reviver);
@@ -241,7 +241,7 @@ export class File extends Entry {
     replacer?: (key: string, value: any) => any,
     space?: string | number,
   ): Promise<void> {
-    if (options && typeof options === "object") {
+    if (options != null && typeof options === "object") {
       replacer = replacer ?? options.replacer;
       space = space ?? options.space;
     }

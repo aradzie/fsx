@@ -111,7 +111,7 @@ export class LockFile {
     options: LockFileOptions & RetryOptions,
   ): Promise<LockFile> {
     const opts = expand(options);
-    const file = File.of(name);
+    const file = File.from(name);
     const lock = await lockName(file.name, opts.suffix);
     const retry = new Retry(options);
     while (true) {
@@ -154,7 +154,7 @@ export class LockFile {
     options: LockFileOptions = {},
   ): Promise<"unlocked" | "locked" | "stale"> {
     const opts = expand(options);
-    const file = File.of(name);
+    const file = File.from(name);
     const lock = await lockName(file.name, opts.suffix);
     try {
       const { mtime } = await lock.stat();
@@ -177,7 +177,7 @@ export class LockFile {
     options: LockFileOptions = {},
   ): Promise<void> {
     const opts = expand(options);
-    const file = File.of(name);
+    const file = File.from(name);
     const lock = await lockName(file.name, opts.suffix);
     await lock.delete();
   }
