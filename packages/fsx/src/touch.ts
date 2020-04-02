@@ -8,11 +8,29 @@ import {
   openSync,
 } from "./fs";
 
+/**
+ * Touch options.
+ */
 export interface TouchOptions {
+  /**
+   * Whether to create a new file if it does not exist.
+   */
   readonly create?: boolean;
+  /**
+   * Set the file modification time to this value.
+   */
   readonly now?: Date;
 }
 
+/**
+ * Updates the modification time the specified file.
+ * If the file does not exist, a new empty one will be created.
+ *
+ * @param name Name of the file to touch.
+ * @param options Touch options.
+ * @return A boolean value indicating whether the modification time
+ *         of the existing file was updated or a new empty file was created.
+ */
 export async function touch(
   name: string,
   options: TouchOptions = {},
@@ -36,6 +54,15 @@ export async function touch(
   }
 }
 
+/**
+ * Updates the modification time the specified file.
+ * If the file does not exist, a new empty one will be created.
+ *
+ * @param name Name of the file to touch.
+ * @param options Touch options.
+ * @return A boolean value indicating whether the modification time
+ *         of the existing file was updated or a new empty file was created.
+ */
 export async function touchSync(
   name: string,
   options: TouchOptions = {},
