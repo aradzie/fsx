@@ -19,6 +19,7 @@ import {
   WriteStream,
 } from "@aradzie/fsx";
 import { dirname, normalize, resolve } from "path";
+import { FileHandle } from "./filehandle";
 import type {
   AppendOptions,
   Encoding,
@@ -150,11 +151,18 @@ export class File extends Entry {
     return createWriteStream(this.name, options);
   }
 
-  async read(): Promise<Buffer>;
-  async read(options: Encoding): Promise<string>;
-  async read(options?: ReadOptions | Encoding): Promise<Buffer | string>;
-  async read(options?: ReadOptions | Encoding): Promise<Buffer | string> {
-    return await readFile(this.name, options);
+  open(
+    flags: string | number,
+    mode?: string | number | null,
+  ): Promise<FileHandle> {
+    return FileHandle.open(this.name, flags, mode);
+  }
+
+  read(): Promise<Buffer>;
+  read(options: Encoding): Promise<string>;
+  read(options?: ReadOptions | Encoding): Promise<Buffer | string>;
+  read(options?: ReadOptions | Encoding): Promise<Buffer | string> {
+    return readFile(this.name, options);
   }
 
   async write(data: any, options?: WriteOptions | Encoding): Promise<boolean> {

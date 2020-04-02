@@ -268,7 +268,7 @@ async function lockName(name: string, suffix: string): Promise<File> {
 async function tryOpenLock(file: File): Promise<FileHandle | null> {
   await file.dir().create();
   try {
-    return await FileHandle.open(file.name, "wx");
+    return await file.open("wx");
   } catch (ex) {
     if (ex.code === "EEXIST") {
       return null;
