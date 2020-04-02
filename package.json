@@ -23,6 +23,7 @@
     "eslint-import-resolver-typescript": "^2.0.0",
     "eslint-plugin-ava": "^10.2.0",
     "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
     "lerna": "^3.20.2",
     "prettier": "^2.0.2",
     "typescript": "^3.8.3"
