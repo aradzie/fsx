@@ -11,7 +11,7 @@ import {
   Stats,
   write,
 } from "@aradzie/fsx";
-import type { Encoding } from "./file";
+import type { Encoding } from "./types";
 
 const kName = Symbol();
 const kFd = Symbol();

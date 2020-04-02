@@ -19,51 +19,14 @@ import {
   WriteStream,
 } from "@aradzie/fsx";
 import { dirname, normalize, resolve } from "path";
-
-export type ReadFlag =
-  | "r" // Open file for reading. An exception occurs if the file does not exist.
-  | "r+"; // Open file for reading and writing. An exception occurs if the file does not exist.
-
-export type AppendFlag =
-  | "a" // Open file for appending. The file is created if it does not exist.
-  | "ax" // Like 'a' but fails if the path exists.
-  | "a+" // Open file for reading and appending. The file is created if it does not exist.
-  | "ax+"; // Like 'a+' but fails if the path exists.
-
-export type WriteFlag =
-  | AppendFlag
-  | "w" // Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
-  | "wx" // Like 'w' but fails if the path exists.
-  | "w+" // Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
-  | "wx+"; // Like 'w+' but fails if the path exists.
-
-export type Encoding = "utf8" | "base64" | "hex" | "binary";
-
-export interface ReadOptions {
-  readonly flag?: ReadFlag;
-  readonly encoding?: Encoding;
-}
-
-export interface AppendOptions {
-  readonly mode?: number;
-  readonly flag?: AppendFlag;
-  readonly encoding?: Encoding;
-}
-
-export interface WriteOptions {
-  readonly mode?: number;
-  readonly flag?: WriteFlag;
-  readonly encoding?: Encoding;
-}
-
-export interface ReadJsonOptions extends ReadOptions {
-  readonly reviver?: (key: any, value: any) => any;
-}
-
-export interface WriteJsonOptions extends WriteOptions {
-  readonly replacer?: (key: string, value: any) => any;
-  readonly space?: string | number;
-}
+import type {
+  AppendOptions,
+  Encoding,
+  ReadJsonOptions,
+  ReadOptions,
+  WriteJsonOptions,
+  WriteOptions,
+} from "./types";
 
 abstract class Entry {
   public readonly name: string;
