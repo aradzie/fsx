@@ -2,6 +2,7 @@ import {
   close,
   fchmod,
   fchown,
+  fdatasync,
   fstat,
   fsync,
   ftruncate,
@@ -38,10 +39,16 @@ export class FileHandle {
     this[kFd] = fd;
   }
 
+  /**
+   * Gets file name.
+   */
   get name(): string {
     return this[kName];
   }
 
+  /**
+   * Gets file descriptor.
+   */
   get fd(): number {
     return this[kFd];
   }
@@ -69,12 +76,16 @@ export class FileHandle {
     return futimes(this[kFd], atime, mtime);
   }
 
-  async truncate(length?: number): Promise<void> {
-    return ftruncate(this[kFd], length);
-  }
-
   async sync(): Promise<void> {
     return fsync(this[kFd]);
+  }
+
+  async datasync(): Promise<void> {
+    return fdatasync(this[kFd]);
+  }
+
+  async truncate(length?: number): Promise<void> {
+    return ftruncate(this[kFd], length);
   }
 
   /**
