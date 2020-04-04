@@ -51,7 +51,6 @@ module.exports = {
       rules: {
         "import/no-named-as-default-member": "off",
         "node/no-extraneous-import": ["error", { allowModules: ["ava"] }],
-        "ava/no-ignored-test-files": "off",
       },
     },
   ],
