@@ -63,10 +63,7 @@ export async function touch(
  * @return A boolean value indicating whether the modification time
  *         of the existing file was updated or a new empty file was created.
  */
-export async function touchSync(
-  name: string,
-  options: TouchOptions = {},
-): Promise<boolean> {
+export function touchSync(name: string, options: TouchOptions = {}): boolean {
   const { create = true, now = new Date() } = options;
   let flags = constants.O_RDWR;
   if (create) {

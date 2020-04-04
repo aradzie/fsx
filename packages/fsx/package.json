@@ -23,6 +23,18 @@
     "tslib": "^1.11.1"
   },
   "scripts": {
-    "compile": "rm -fr lib; rm -fr lib-esm; tsc; tsc -b tsconfig-esm.json"
+    "compile": "rm -fr lib; rm -fr lib-esm; tsc; tsc -b tsconfig-esm.json",
+    "test": "ava"
+  },
+  "ava": {
+    "typescript": {
+      "rewritePaths": {
+        "src/": "lib/"
+      }
+    },
+    "files": [
+      "src/**/*.test.ts"
+    ],
+    "serial": true
   }
 }

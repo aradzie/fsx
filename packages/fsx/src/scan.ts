@@ -1,61 +1,110 @@
 import { join } from "path";
 import {
+  lstat,
+  lstatSync,
   readdir,
   readdirSync,
   rmdir,
-  stat,
+  rmdirSync,
   Stats,
-  statSync,
   unlink,
+  unlinkSync,
 } from "./fs";
 
 export interface Entry {
+  /**
+   * Path to this entry, relative to the input dir path.
+   */
   readonly path: string;
+  /**
+   * Entry stats.
+   */
   readonly stats: Stats;
 }
 
+/**
+ * Performs recursive pre-order traversal of the given directory
+ * for all its contents.
+ * The directory itself is excluded.
+ * Symlinks are not followed.
+ * @param dir The directory to scan.
+ * @return An iterator of all directory contents.
+ */
 export async function* scanDir(dir: string): AsyncIterable<Entry> {
-  for (const item of await readdir(dir)) {
+  for (const item of await safeReaddir(dir)) {
     yield* scan(dir, item);
   }
 }
 
 async function* scan(dir: string, suffix: string): AsyncIterable<Entry> {
   const path = join(dir, suffix);
-  const stats = await stat(path);
-  if (stats.isDirectory()) {
-    for (const item of await readdir(path)) {
-      yield* scan(dir, join(suffix, item));
-    }
-  } else if (stats.isFile()) {
+  const stats = await safeLstat(path);
+  if (stats != null) {
     yield { path: suffix, stats };
+    if (stats.isDirectory()) {
+      for (const item of await safeReaddir(path)) {
+        yield* scan(dir, join(suffix, item));
+      }
+    }
   }
 }
 
+/**
+ * Performs recursive pre-order traversal of the given directory
+ * for all its contents.
+ * The directory itself is excluded.
+ * Symlinks are not followed.
+ * @param dir The directory to scan.
+ * @return An iterator of all directory contents.
+ */
 export function* scanDirSync(dir: string): Iterable<Entry> {
-  for (const item of readdirSync(dir)) {
+  for (const item of safeReaddirSync(dir)) {
     yield* scanSync(dir, item);
   }
 }
 
 function* scanSync(dir: string, suffix: string): Iterable<Entry> {
   const path = join(dir, suffix);
-  const stats = statSync(path);
-  if (stats.isDirectory()) {
-    for (const item of readdirSync(path)) {
-      yield* scanSync(dir, join(suffix, item));
-    }
-  } else if (stats.isFile()) {
+  const stats = safeLstatSync(path);
+  if (stats != null) {
     yield { path: suffix, stats };
+    if (stats.isDirectory()) {
+      for (const item of safeReaddirSync(path)) {
+        yield* scanSync(dir, join(suffix, item));
+      }
+    }
   }
 }
 
+/**
+ * Recursively removes all contents form the given directory. The directory
+ * itself is not removed.
+ * If the directory does not exist then this method does nothing.
+ * @param dir The directory to empty.
+ */
 export async function emptyDir(dir: string): Promise<void> {
   for await (const entry of start(dir)) {
     await kill(entry);
   }
 }
 
+/**
+ * Recursively removes all contents form the given directory. The directory
+ * itself is not removed.
+ * If the directory does not exist then this method does nothing.
+ * @param dir The directory to empty.
+ */
+export function emptyDirSync(dir: string): void {
+  for (const entry of startSync(dir)) {
+    killSync(entry);
+  }
+}
+
+/**
+ * Recursively removes the given directory with all its content.
+ * If the directory does not exist then this method does nothing.
+ * @param dir The directory to remove.
+ */
 export async function removeDir(dir: string): Promise<void> {
   for await (const entry of start(dir)) {
     await kill(entry);
@@ -69,10 +118,28 @@ export async function removeDir(dir: string): Promise<void> {
   }
 }
 
+/**
+ * Recursively removes the given directory with all its content.
+ * If the directory does not exist then this method does nothing.
+ * @param dir The directory to remove.
+ */
+export function removeDirSync(dir: string): void {
+  for (const entry of startSync(dir)) {
+    killSync(entry);
+  }
+  try {
+    rmdirSync(dir);
+  } catch (ex) {
+    if (ex.code !== "ENOENT") {
+      throw ex;
+    }
+  }
+}
+
 async function* start(dir: string): AsyncIterable<Entry> {
   try {
-    for (const item of await readdir(dir)) {
-      yield* list(join(dir, item));
+    for (const item of await safeReaddir(dir)) {
+      yield* postOrderScan(join(dir, item));
     }
   } catch (ex) {
     if (ex.code !== "ENOENT") {
@@ -81,15 +148,58 @@ async function* start(dir: string): AsyncIterable<Entry> {
   }
 }
 
-async function* list(dir: string): AsyncIterable<Entry> {
+function* startSync(dir: string): Iterable<Entry> {
   try {
-    const stats = await stat(dir);
+    for (const item of safeReaddirSync(dir)) {
+      yield* postOrderScanSync(join(dir, item));
+    }
+  } catch (ex) {
+    if (ex.code !== "ENOENT") {
+      throw ex;
+    }
+  }
+}
+
+/**
+ * Performs recursive post-order traversal of directory contents.
+ */
+async function* postOrderScan(dir: string): AsyncIterable<Entry> {
+  const stats = await safeLstat(dir);
+  if (stats != null) {
     if (stats.isDirectory()) {
-      for (const item of await readdir(dir)) {
-        yield* list(join(dir, item));
+      for (const item of await safeReaddir(dir)) {
+        yield* postOrderScan(join(dir, item));
       }
     }
     yield { path: dir, stats };
+  }
+}
+
+/**
+ * Performs recursive post-order traversal of directory contents.
+ */
+function* postOrderScanSync(dir: string): Iterable<Entry> {
+  const stats = safeLstatSync(dir);
+  if (stats != null) {
+    if (stats.isDirectory()) {
+      for (const item of safeReaddirSync(dir)) {
+        yield* postOrderScanSync(join(dir, item));
+      }
+    }
+    yield { path: dir, stats };
+  }
+}
+
+/**
+ * Deletes filesystem entry, directory or file.
+ */
+async function kill({ path, stats }: Entry): Promise<void> {
+  try {
+    if (stats.isDirectory()) {
+      await rmdir(path);
+    } else {
+      await unlink(path);
+    }
   } catch (ex) {
     if (ex.code !== "ENOENT") {
       throw ex;
@@ -97,15 +207,66 @@ async function* list(dir: string): AsyncIterable<Entry> {
   }
 }
 
-async function kill({ path, stats }: Entry): Promise<void> {
+/**
+ * Deletes filesystem entry, directory or file.
+ */
+function killSync({ path, stats }: Entry): void {
   try {
-    if (stats.isFile() || stats.isSymbolicLink()) {
-      await unlink(path);
-    } else if (stats.isDirectory()) {
-      await rmdir(path);
+    if (stats.isDirectory()) {
+      rmdirSync(path);
+    } else {
+      unlinkSync(path);
     }
   } catch (ex) {
     if (ex.code !== "ENOENT") {
+      throw ex;
+    }
+  }
+}
+
+async function safeReaddir(path: string): Promise<string[]> {
+  try {
+    return await readdir(path);
+  } catch (ex) {
+    if (ex.code === "ENOENT") {
+      return [];
+    } else {
+      throw ex;
+    }
+  }
+}
+
+function safeReaddirSync(path: string): string[] {
+  try {
+    return readdirSync(path);
+  } catch (ex) {
+    if (ex.code === "ENOENT") {
+      return [];
+    } else {
+      throw ex;
+    }
+  }
+}
+
+async function safeLstat(path: string): Promise<Stats | null> {
+  try {
+    return await lstat(path);
+  } catch (ex) {
+    if (ex.code === "ENOENT") {
+      return null;
+    } else {
+      throw ex;
+    }
+  }
+}
+
+function safeLstatSync(path: string): Stats | null {
+  try {
+    return lstatSync(path);
+  } catch (ex) {
+    if (ex.code === "ENOENT") {
+      return null;
+    } else {
       throw ex;
     }
   }
