@@ -1,3 +1,8 @@
+/*
+ * Compares the list of names exported from this package
+ * with the list of names exported from node's "fs".
+ */
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const their = require("fs");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
