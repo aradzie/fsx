@@ -137,26 +137,14 @@ export function removeDirSync(dir: string): void {
 }
 
 async function* start(dir: string): AsyncIterable<Entry> {
-  try {
-    for (const item of await safeReaddir(dir)) {
-      yield* postOrderScan(join(dir, item));
-    }
-  } catch (ex) {
-    if (ex.code !== "ENOENT") {
-      throw ex;
-    }
+  for (const item of await safeReaddir(dir)) {
+    yield* postOrderScan(join(dir, item));
   }
 }
 
 function* startSync(dir: string): Iterable<Entry> {
-  try {
-    for (const item of safeReaddirSync(dir)) {
-      yield* postOrderScanSync(join(dir, item));
-    }
-  } catch (ex) {
-    if (ex.code !== "ENOENT") {
-      throw ex;
-    }
+  for (const item of safeReaddirSync(dir)) {
+    yield* postOrderScanSync(join(dir, item));
   }
 }
 
