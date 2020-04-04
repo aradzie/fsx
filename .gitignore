@@ -3,16 +3,12 @@ packages/*/lib/
 packages/*/lib-cjs/
 packages/*/lib-esm/
 packages/*/docs/
+build/
+out/
 
 # Other
 node_modules/
-vendor/
-target/
-build/
-out/
 tmp/
-sandbox/
-backup/
 .cache/
 .vscode/
 .idea/
