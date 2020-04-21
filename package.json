@@ -12,7 +12,8 @@
     "test": "lerna run test",
     "lint": "eslint packages --ext .ts",
     "lint-fix": "eslint packages --ext .ts --fix",
-    "format": "prettier --write 'packages/*/src/**/*.ts'"
+    "format": "prettier --write 'packages/*/src/**/*.ts'",
+    "typedoc": "lerna run typedoc"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
@@ -27,6 +28,7 @@
     "eslint-plugin-node": "^11.1.0",
     "lerna": "^3.20.2",
     "prettier": "^2.0.4",
+    "typedoc": "^0.17.4",
     "typescript": "^3.8.3"
   }
 }

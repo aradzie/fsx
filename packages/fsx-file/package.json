@@ -25,7 +25,8 @@
   },
   "scripts": {
     "compile": "rm -fr lib && rm -fr lib-esm && tsc && tsc -b tsconfig-esm.json",
-    "test": "ava"
+    "test": "ava",
+    "typedoc": "typedoc"
   },
   "ava": {
     "typescript": {

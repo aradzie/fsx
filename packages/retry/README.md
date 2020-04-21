@@ -1,4 +1,4 @@
-# Retry
+# Retry ([API Doc](https://aradzie.github.io/fsx/retry/))
 
 A library for retrying failed I/O operations.
 
@@ -18,7 +18,7 @@ class MyService {
     delayer: fixedDelay(100),
   })
   async makeNetworkRequest(): Promise<void> {
-    // The @retry(...) annotation will call this method 
+    // The @retry(...) annotation will call this method
     // as long as it throws exceptions, then returns
     // the last successful result.
   }

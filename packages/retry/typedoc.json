@@ -1,0 +1,9 @@
+{
+  "out": "../../docs/retry",
+  "inputFiles": ["src/**/*"],
+  "exclude": ["**/test/*", "**/*.test.*"],
+  "excludeExternals": true,
+  "excludeNotExported": true,
+  "excludePrivate": true,
+  "mode": "modules"
+}
