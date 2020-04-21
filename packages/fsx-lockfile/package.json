@@ -7,7 +7,7 @@
   "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aradzie/fsx.git",
+    "url": "git://github.com/aradzie/fsx.git",
     "directory": "packages/fsx-lockfile"
   },
   "engines": {
