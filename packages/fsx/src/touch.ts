@@ -1,9 +1,12 @@
+import { dirname } from "path";
 import {
   close,
   closeSync,
   constants,
   futimes,
   futimesSync,
+  mkdir,
+  mkdirSync,
   open,
   openSync,
 } from "./fs";
@@ -41,6 +44,9 @@ export async function touch(
     flags = flags | constants.O_CREAT;
   }
   try {
+    if (create) {
+      await mkdir(dirname(name), { recursive: true });
+    }
     const fd = await open(name, flags);
     await futimes(fd, now, now);
     await close(fd);
@@ -70,6 +76,9 @@ export function touchSync(name: string, options: TouchOptions = {}): boolean {
     flags = flags | constants.O_CREAT;
   }
   try {
+    if (create) {
+      mkdirSync(dirname(name), { recursive: true });
+    }
     const fd = openSync(name, flags);
     futimesSync(fd, now, now);
     closeSync(fd);
