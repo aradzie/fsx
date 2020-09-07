@@ -35,7 +35,7 @@ export interface AnnotationOptions extends RetryOptions {
  */
 export function retry(options: AnnotationOptions): MethodDecorator {
   return (
-    target: object,
+    target: Object, // eslint-disable-line @typescript-eslint/ban-types
     propertyKey: string | symbol,
     descriptor: PropertyDescriptor,
   ): void => {
