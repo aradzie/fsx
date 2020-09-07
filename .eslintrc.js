@@ -16,6 +16,9 @@ module.exports = {
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:node/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript",
     "plugin:ava/recommended",
   ],
   rules: {
@@ -35,9 +38,6 @@ module.exports = {
     "node/prefer-global/url-search-params": ["error", "always"],
   },
   settings: {
-    "import/parsers": {
-      "@typescript-eslint/parser": [".ts"],
-    },
     "import/resolver": {
       typescript: {
         alwaysTryTypes: true,
