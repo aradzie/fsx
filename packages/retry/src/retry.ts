@@ -1,5 +1,5 @@
-import type { Delayer } from "./delayer";
-import { pause } from "./pause";
+import type { Delayer } from "./delayer.js";
+import { pause } from "./pause.js";
 
 export interface RetryOptions {
   readonly retryLimit?: number;

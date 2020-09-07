@@ -4,7 +4,7 @@ import {
   fixedDelay,
   incrementalDelay,
   randomDelay,
-} from "./delayer";
+} from "./delayer.js";
 
 test("fixedDelay", (t) => {
   const delayer = fixedDelay(123);

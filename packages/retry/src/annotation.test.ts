@@ -1,6 +1,6 @@
 import test from "ava";
-import { retry } from "./annotation";
-import { fixedDelay } from "./delayer";
+import { retry } from "./annotation.js";
+import { fixedDelay } from "./delayer.js";
 
 test("return value from decorated method", async (t) => {
   // Arrange.

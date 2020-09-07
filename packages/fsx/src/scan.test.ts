@@ -6,7 +6,7 @@ import {
   symlinkSync,
   unlinkSync,
   writeFileSync,
-} from "./fs";
+} from "./fs.js";
 import {
   emptyDir,
   emptyDirSync,
@@ -14,7 +14,7 @@ import {
   removeDirSync,
   scanDir,
   scanDirSync,
-} from "./scan";
+} from "./scan.js";
 
 test.beforeEach(() => {
   mkdirSync("/tmp/scan-test-dir/a/1", { recursive: true });

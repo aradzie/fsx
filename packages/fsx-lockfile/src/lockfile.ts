@@ -3,8 +3,8 @@ import { Encoding, File, FileHandle } from "@aradzie/fsx-file";
 import { Retry, RetryOptions } from "@aradzie/retry";
 import assert from "assert";
 import { resolve } from "path";
-import { track, untrack } from "./cleanup";
-import { debuglog } from "./debug";
+import { track, untrack } from "./cleanup.js";
+import { debuglog } from "./debug.js";
 
 /**
  * An error which indicates failure to lock a file.

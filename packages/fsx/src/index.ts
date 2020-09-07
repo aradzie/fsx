@@ -1,3 +1,3 @@
-export * from "./fs";
-export * from "./scan";
-export * from "./touch";
+export * from "./fs.js";
+export * from "./scan.js";
+export * from "./touch.js";

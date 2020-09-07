@@ -1,3 +1,3 @@
-export * from "./types";
-export * from "./file";
-export * from "./filehandle";
+export * from "./types.js";
+export * from "./file.js";
+export * from "./filehandle.js";

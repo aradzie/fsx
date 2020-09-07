@@ -1,6 +1,6 @@
 import test from "ava";
-import { Dir, File } from "./file";
-import { FileHandle } from "./filehandle";
+import { Dir, File } from "./file.js";
+import { FileHandle } from "./filehandle.js";
 
 const root = new Dir("/tmp/test-fs-filehandle");
 const file = new File("/tmp/test-fs-filehandle/file");

@@ -1,7 +1,7 @@
 import test from "ava";
-import { fixedDelay } from "./delayer";
-import { pause } from "./pause";
-import { Retry } from "./retry";
+import { fixedDelay } from "./delayer.js";
+import { pause } from "./pause.js";
+import { Retry } from "./retry.js";
 
 test("limit attempts", async (t) => {
   {

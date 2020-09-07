@@ -1,1 +1,1 @@
-export * from "./lockfile";
+export * from "./lockfile.js";

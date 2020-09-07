@@ -9,7 +9,7 @@ import {
   mkdirSync,
   open,
   openSync,
-} from "./fs";
+} from "./fs.js";
 
 /**
  * Touch options.

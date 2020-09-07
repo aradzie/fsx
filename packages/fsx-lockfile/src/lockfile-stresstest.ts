@@ -1,8 +1,8 @@
 import { File } from "@aradzie/fsx-file";
 import { exponentialDelay, RetryOptions } from "@aradzie/retry";
 import cluster from "cluster";
-import { LockFile } from "./lockfile";
-import { pause } from "./pause";
+import { LockFile } from "./lockfile.js";
+import { pause } from "./pause.js";
 
 const file = new File("/tmp/lock-file-stress-test.json");
 

@@ -19,7 +19,7 @@ import {
   WriteStream,
 } from "@aradzie/fsx";
 import { dirname, normalize, resolve } from "path";
-import { FileHandle } from "./filehandle";
+import { FileHandle } from "./filehandle.js";
 import type {
   AppendOptions,
   Encoding,
@@ -27,7 +27,7 @@ import type {
   ReadOptions,
   WriteJsonOptions,
   WriteOptions,
-} from "./types";
+} from "./types.js";
 
 abstract class Entry {
   public readonly name: string;

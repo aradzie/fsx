@@ -1,5 +1,5 @@
 import { unlinkSync } from "@aradzie/fsx";
-import { debuglog } from "./debug";
+import { debuglog } from "./debug.js";
 
 const locks = new Set<string>();
 

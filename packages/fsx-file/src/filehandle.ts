@@ -12,8 +12,8 @@ import {
   Stats,
   write,
 } from "@aradzie/fsx";
-import type { Encoding } from "./types";
-import { readFileHandle, toBuffer, writeFileHandle } from "./util";
+import type { Encoding } from "./types.js";
+import { readFileHandle, toBuffer, writeFileHandle } from "./util.js";
 
 const kName = Symbol();
 const kFd = Symbol();

@@ -1,7 +1,7 @@
 import { Dir, File } from "@aradzie/fsx-file";
 import { fixedDelay, RetryOptions } from "@aradzie/retry";
 import test from "ava";
-import { LockFile, LockFileError, LockFileState } from "./lockfile";
+import { LockFile, LockFileError, LockFileState } from "./lockfile.js";
 
 const root = new Dir("/tmp/test-fs-lockfile");
 const file = new File("/tmp/test-fs-lockfile/file");

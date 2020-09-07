@@ -6,8 +6,8 @@ import {
   statSync,
   unlinkSync,
   writeFileSync,
-} from "./fs";
-import { touch, touchSync } from "./touch";
+} from "./fs.js";
+import { touch, touchSync } from "./touch.js";
 
 test.beforeEach(() => {
   safeUnlinkSync("/tmp/touch-test-dir/touch-test-file");

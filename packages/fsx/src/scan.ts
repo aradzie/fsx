@@ -9,7 +9,7 @@ import {
   Stats,
   unlink,
   unlinkSync,
-} from "./fs";
+} from "./fs.js";
 
 export interface Entry {
   /**
