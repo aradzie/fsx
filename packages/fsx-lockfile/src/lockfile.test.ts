@@ -240,3 +240,92 @@ test.serial("check state", async (t) => {
     await lockFile.rollback();
   });
 });
+
+test.serial("withLock automatically commits on success", async (t) => {
+  // Act.
+
+  const options: RetryOptions = {
+    retryLimit: 1,
+    delayer: fixedDelay(1),
+  };
+
+  await LockFile.withLock(file, options, async (lock) => {
+    await lock.writeFile("something");
+  });
+
+  // Assert.
+
+  t.is(await LockFile.isLocked(file), "unlocked");
+  t.is(await file.read("utf8"), "something");
+});
+
+test.serial("withLock automatically rollbacks on error", async (t) => {
+  // Arrange.
+
+  await file.write("something");
+
+  // Act.
+
+  const options: RetryOptions = {
+    retryLimit: 1,
+    delayer: fixedDelay(1),
+  };
+
+  await t.throwsAsync(async () => {
+    await LockFile.withLock(file, options, async (lock) => {
+      await lock.writeFile("fixed");
+      throw new Error("whoops");
+    });
+  });
+
+  // Assert.
+
+  t.is(await LockFile.isLocked(file), "unlocked");
+  t.is(await file.read("utf8"), "something");
+});
+
+test.serial("withLock honors commit", async (t) => {
+  // Arrange.
+
+  await file.write("something");
+
+  // Act.
+
+  const options: RetryOptions = {
+    retryLimit: 1,
+    delayer: fixedDelay(1),
+  };
+
+  await LockFile.withLock(file, options, async (lock) => {
+    await lock.writeFile("fixed");
+    await lock.commit();
+  });
+
+  // Assert.
+
+  t.is(await LockFile.isLocked(file), "unlocked");
+  t.is(await file.read("utf8"), "fixed");
+});
+
+test.serial("withLock honors rollback", async (t) => {
+  // Arrange.
+
+  await file.write("something");
+
+  // Act.
+
+  const options: RetryOptions = {
+    retryLimit: 1,
+    delayer: fixedDelay(1),
+  };
+
+  await LockFile.withLock(file, options, async (lock) => {
+    await lock.writeFile("fixed");
+    await lock.rollback();
+  });
+
+  // Assert.
+
+  t.is(await LockFile.isLocked(file), "unlocked");
+  t.is(await file.read("utf8"), "something");
+});

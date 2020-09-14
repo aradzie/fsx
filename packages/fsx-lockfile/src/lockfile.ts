@@ -91,10 +91,14 @@ export class LockFile {
     try {
       result = await callback(lock);
     } catch (ex) {
-      await lock.rollback();
+      if (lock.state === LockFileState.LOCKED) {
+        await lock.rollback();
+      }
       throw ex;
     }
-    await lock.commit();
+    if (lock.state === LockFileState.LOCKED) {
+      await lock.commit();
+    }
     return result;
   }
 
