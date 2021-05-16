@@ -1,6 +1,6 @@
 {
   "name": "@aradzie/fsx-lockfile",
-  "version": "0.0.3-alpha.0",
+  "version": "0.1.0",
   "description": "A library which allows multiple concurrent processes to safely update shared files.",
   "homepage": "https://github.com/aradzie/fsx/blob/master/packages/fsx-lockfile#readme",
   "license": "MIT",
@@ -20,9 +20,9 @@
   "types": "lib/index.d.ts",
   "module": "lib-esm/index.js",
   "dependencies": {
-    "@aradzie/fsx": "^0.0.3-alpha.0",
-    "@aradzie/fsx-file": "^0.0.3-alpha.0",
-    "@aradzie/retry": "^0.0.3-alpha.0",
+    "@aradzie/fsx": "^0.1.0",
+    "@aradzie/fsx-file": "^0.1.0",
+    "@aradzie/retry": "^0.1.0",
     "tslib": "^2.2.0"
   },
   "scripts": {
