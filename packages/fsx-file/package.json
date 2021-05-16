@@ -21,7 +21,7 @@
   "module": "lib-esm/index.js",
   "dependencies": {
     "@aradzie/fsx": "^0.0.3-alpha.0",
-    "tslib": "^2.0.0"
+    "tslib": "^2.2.0"
   },
   "scripts": {
     "compile": "rm -fr lib && rm -fr lib-esm && tsc && tsc -b tsconfig-esm.json",

@@ -20,7 +20,7 @@
   "types": "lib/index.d.ts",
   "module": "lib-esm/index.js",
   "dependencies": {
-    "tslib": "^2.0.0"
+    "tslib": "^2.2.0"
   },
   "scripts": {
     "compile": "rm -fr lib && rm -fr lib-esm && tsc && tsc -b tsconfig-esm.json",
