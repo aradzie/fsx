@@ -11,7 +11,7 @@
     "directory": "packages/fsx"
   },
   "engines": {
-    "node": ">=12.13"
+    "node": ">=14.17"
   },
   "publishConfig": {
     "access": "public"
