@@ -1,6 +1,6 @@
 {
   "name": "@aradzie/fsx",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A collection of utilities which extend the node's `fs` module in various ways.",
   "homepage": "https://github.com/aradzie/fsx/blob/master/packages/fsx#readme",
   "license": "MIT",
