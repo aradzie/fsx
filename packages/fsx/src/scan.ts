@@ -111,9 +111,9 @@ export async function removeDir(dir: string): Promise<void> {
   }
   try {
     await rmdir(dir);
-  } catch (ex) {
-    if (ex.code !== "ENOENT") {
-      throw ex;
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      throw err;
     }
   }
 }
@@ -129,9 +129,9 @@ export function removeDirSync(dir: string): void {
   }
   try {
     rmdirSync(dir);
-  } catch (ex) {
-    if (ex.code !== "ENOENT") {
-      throw ex;
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      throw err;
     }
   }
 }
@@ -188,9 +188,9 @@ async function kill({ path, stats }: Entry): Promise<void> {
     } else {
       await unlink(path);
     }
-  } catch (ex) {
-    if (ex.code !== "ENOENT") {
-      throw ex;
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      throw err;
     }
   }
 }
@@ -205,9 +205,9 @@ function killSync({ path, stats }: Entry): void {
     } else {
       unlinkSync(path);
     }
-  } catch (ex) {
-    if (ex.code !== "ENOENT") {
-      throw ex;
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      throw err;
     }
   }
 }
@@ -215,11 +215,11 @@ function killSync({ path, stats }: Entry): void {
 async function safeReaddir(path: string): Promise<string[]> {
   try {
     return await readdir(path);
-  } catch (ex) {
-    if (ex.code === "ENOENT") {
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
       return [];
     } else {
-      throw ex;
+      throw err;
     }
   }
 }
@@ -227,11 +227,11 @@ async function safeReaddir(path: string): Promise<string[]> {
 function safeReaddirSync(path: string): string[] {
   try {
     return readdirSync(path);
-  } catch (ex) {
-    if (ex.code === "ENOENT") {
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
       return [];
     } else {
-      throw ex;
+      throw err;
     }
   }
 }
@@ -239,11 +239,11 @@ function safeReaddirSync(path: string): string[] {
 async function safeLstat(path: string): Promise<Stats | null> {
   try {
     return await lstat(path);
-  } catch (ex) {
-    if (ex.code === "ENOENT") {
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
       return null;
     } else {
-      throw ex;
+      throw err;
     }
   }
 }
@@ -251,11 +251,11 @@ async function safeLstat(path: string): Promise<Stats | null> {
 function safeLstatSync(path: string): Stats | null {
   try {
     return lstatSync(path);
-  } catch (ex) {
-    if (ex.code === "ENOENT") {
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
       return null;
     } else {
-      throw ex;
+      throw err;
     }
   }
 }

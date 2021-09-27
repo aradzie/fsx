@@ -46,12 +46,12 @@ export function retry(options: AnnotationOptions): MethodDecorator {
       while (true) {
         try {
           return await value.apply(this, args);
-        } catch (ex) {
-          if (!checkError(ex)) {
-            throw ex;
+        } catch (err: any) {
+          if (!checkError(err)) {
+            throw err;
           }
           if (!(await retry.tryAgain())) {
-            throw ex;
+            throw err;
           }
         }
       }

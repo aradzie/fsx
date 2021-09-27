@@ -70,11 +70,11 @@ async function worker(): Promise<void> {
 async function readJson(file: File): Promise<{ count: number }> {
   try {
     return (await file.readJson()) as { count: number };
-  } catch (ex) {
-    if (ex.code === "ENOENT") {
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
       return { count: 0 };
     } else {
-      throw ex;
+      throw err;
     }
   }
 }

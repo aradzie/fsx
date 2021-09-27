@@ -51,11 +51,11 @@ abstract class Entry {
     try {
       await access(this.name, constants.F_OK);
       return true;
-    } catch (ex) {
-      if (ex.code === "ENOENT") {
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
         return false;
       } else {
-        throw ex;
+        throw err;
       }
     }
   }
@@ -64,11 +64,11 @@ abstract class Entry {
     try {
       await access(this.name, constants.R_OK);
       return true;
-    } catch (ex) {
-      if (ex.code === "EACCES") {
+    } catch (err: any) {
+      if (err.code === "EACCES") {
         return false;
       } else {
-        throw ex;
+        throw err;
       }
     }
   }
@@ -77,11 +77,11 @@ abstract class Entry {
     try {
       await access(this.name, constants.W_OK);
       return true;
-    } catch (ex) {
-      if (ex.code === "EACCES") {
+    } catch (err: any) {
+      if (err.code === "EACCES") {
         return false;
       } else {
-        throw ex;
+        throw err;
       }
     }
   }
@@ -90,11 +90,11 @@ abstract class Entry {
     try {
       await unlink(this.name);
       return true;
-    } catch (ex) {
-      if (ex.code === "ENOENT") {
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
         return false;
       } else {
-        throw ex;
+        throw err;
       }
     }
   }
@@ -170,11 +170,11 @@ export class File extends Entry {
     try {
       await writeFile(this.name, data, options);
       return true;
-    } catch (ex) {
-      if (ex.code === "EEXIST") {
+    } catch (err: any) {
+      if (err.code === "EEXIST") {
         return false;
       } else {
-        throw ex;
+        throw err;
       }
     }
   }
@@ -187,11 +187,11 @@ export class File extends Entry {
     try {
       await appendFile(this.name, data, options);
       return true;
-    } catch (ex) {
-      if (ex.code === "EEXIST") {
+    } catch (err: any) {
+      if (err.code === "EEXIST") {
         return false;
       } else {
-        throw ex;
+        throw err;
       }
     }
   }

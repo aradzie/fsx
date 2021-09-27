@@ -11,9 +11,9 @@ function cleanup(): void {
     debuglog(`Cleanup lock file "%s"`, lock);
     try {
       unlinkSync(lock);
-    } catch (ex) {
-      if (ex.code !== "ENOENT") {
-        debuglog(`Lock file cleanup error: %o`, ex);
+    } catch (err: any) {
+      if (err.code !== "ENOENT") {
+        debuglog(`Lock file cleanup error: %o`, err);
       }
     }
   }

@@ -51,11 +51,11 @@ export async function touch(
     await futimes(fd, now, now);
     await close(fd);
     return true;
-  } catch (ex) {
-    if (ex.code === "ENOENT") {
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
       return false;
     } else {
-      throw ex;
+      throw err;
     }
   }
 }
@@ -83,11 +83,11 @@ export function touchSync(name: string, options: TouchOptions = {}): boolean {
     futimesSync(fd, now, now);
     closeSync(fd);
     return true;
-  } catch (ex) {
-    if (ex.code === "ENOENT") {
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
       return false;
     } else {
-      throw ex;
+      throw err;
     }
   }
 }

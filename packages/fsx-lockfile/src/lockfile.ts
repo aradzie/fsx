@@ -90,11 +90,11 @@ export class LockFile {
     let result: T;
     try {
       result = await callback(lock);
-    } catch (ex) {
+    } catch (err: any) {
       if (lock.state === LockFileState.LOCKED) {
         await lock.rollback();
       }
-      throw ex;
+      throw err;
     }
     if (lock.state === LockFileState.LOCKED) {
       await lock.commit();
@@ -167,11 +167,11 @@ export class LockFile {
       } else {
         return "locked";
       }
-    } catch (ex) {
-      if (ex.code === "ENOENT") {
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
         return "unlocked";
       } else {
-        throw ex;
+        throw err;
       }
     }
   }
@@ -240,9 +240,9 @@ export class LockFile {
     await this.lock.close();
     try {
       await rename(this.lock.name, this.file.name);
-    } catch (ex) {
+    } catch (err) {
       await unlink(this.lock.name);
-      throw ex;
+      throw err;
     }
   }
 
@@ -273,11 +273,11 @@ async function tryOpenLock(file: File): Promise<FileHandle | null> {
   await file.dir().create();
   try {
     return await file.open("wx");
-  } catch (ex) {
-    if (ex.code === "EEXIST") {
+  } catch (err: any) {
+    if (err.code === "EEXIST") {
       return null;
     } else {
-      throw ex;
+      throw err;
     }
   }
 }
