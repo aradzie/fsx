@@ -5,6 +5,7 @@ import assert from "assert";
 import { resolve } from "path";
 import { track, untrack } from "./cleanup.js";
 import { debuglog } from "./debug.js";
+import { expandPathTemplate } from "./path.js";
 
 /**
  * An error which indicates failure to lock a file.
@@ -54,10 +55,34 @@ export interface LockFileOptions {
    */
   readonly staleAfter?: number;
   /**
-   * The lock file suffix.
-   * The default value is `.lock`.
+   * The lock file name.
+   *
+   * Is a template which accepts placeholders, such as:
+   *
+   * - `[path]` -- The original file path.
+   * - `[root]` -- `root` from `parse(path)`.
+   * - `[dir]` -- `dir` from `parse(path)`.
+   * - `[base]` -- `base` from `parse(path)`.
+   * - `[name]` -- `name` from `parse(path)`.
+   * - `[ext]` -- `ext` from `parse(path)`.
+   * - `[hash]` -- Hashed content of the original file path.
+   * - `[slug]` -- The original file path in which
+   *               all `"/"` are replaced with `"~"`.
+   *
+   * Examples for the original file name `"/var/lib/my-file.txt"`:
+   *
+   * - `"[path]"`                     => `"/var/lib/my-file.txt"`
+   * - `"[path].lock"`                => `"/var/lib/my-file.txt.lock"`
+   * - `"/run/lock/[base]"`           => `"/run/lock/my-file.txt"`
+   * - `"/run/lock/[base].lock"`      => `"/run/lock/my-file.txt.lock"`
+   * - `"/run/lock/[name][ext].lock"` => `"/run/lock/my-file.txt.lock"`
+   * - `"/run/lock/[name]-lock[ext]"` => `"/run/lock/my-file-lock.txt"`
+   * - `"/run/lock/[hash]"`           => `"/run/lock/49f30f4f6f29dac946c10832cd87cf3f"`
+   * - `"/run/lock/[slug]"`           => `"/run/lock/~var~lib~my-file.txt"`
+   *
+   * The default value is `[path].lock`.
    */
-  readonly suffix?: string;
+  readonly lockName?: string;
 }
 
 export enum LockFileState {
@@ -116,7 +141,7 @@ export class LockFile {
   ): Promise<LockFile> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.name, opts.suffix);
+    const lock = await lockName(file.name, opts.lockName);
     const retry = new Retry(options);
     while (true) {
       const handle = await tryOpenLock(lock);
@@ -159,7 +184,7 @@ export class LockFile {
   ): Promise<"unlocked" | "locked" | "stale"> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.name, opts.suffix);
+    const lock = await lockName(file.name, opts.lockName);
     try {
       const { mtime } = await lock.stat();
       if (mtime < new Date(Date.now() - opts.staleAfter)) {
@@ -182,7 +207,7 @@ export class LockFile {
   ): Promise<void> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.name, opts.suffix);
+    const lock = await lockName(file.name, opts.lockName);
     await lock.delete();
   }
 
@@ -255,18 +280,22 @@ export class LockFile {
 function expand(options: LockFileOptions) {
   return {
     staleAfter: 3_600_000, // One hour.
-    suffix: ".lock",
+    lockName: "[path].lock",
     ...options,
   };
 }
 
-async function lockName(name: string, suffix: string): Promise<File> {
+async function lockName(name: string, lockName: string): Promise<File> {
   try {
     name = await realpath(name);
   } catch {
     name = resolve(name);
   }
-  return new File(name + suffix);
+  lockName = expandPathTemplate(lockName, name);
+  if (name === lockName) {
+    throw new Error(`Lock name is the same as file name.`);
+  }
+  return new File(lockName);
 }
 
 async function tryOpenLock(file: File): Promise<FileHandle | null> {
