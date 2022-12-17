@@ -1,5 +1,5 @@
-import { File } from "@aradzie/fsx-file";
-import { exponentialDelay, RetryOptions } from "@aradzie/retry";
+import { File } from "@sosimple/fsx-file";
+import { exponentialDelay, RetryOptions } from "@sosimple/retry";
 import cluster from "cluster";
 import { LockFile } from "./lockfile.js";
 import { pause } from "./pause.js";

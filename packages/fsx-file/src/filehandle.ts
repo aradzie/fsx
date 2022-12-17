@@ -11,7 +11,7 @@ import {
   read,
   Stats,
   write,
-} from "@aradzie/fsx";
+} from "@sosimple/fsx";
 import type { Encoding } from "./types.js";
 import { readFileHandle, toBuffer, writeFileHandle } from "./util.js";
 

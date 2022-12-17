@@ -17,7 +17,7 @@ import {
   utimes,
   writeFile,
   WriteStream,
-} from "@aradzie/fsx";
+} from "@sosimple/fsx";
 import { dirname, normalize, resolve } from "path";
 import { FileHandle } from "./filehandle.js";
 import type {

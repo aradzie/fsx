@@ -1,4 +1,4 @@
-import { fstat, read, write } from "@aradzie/fsx";
+import { fstat, read, write } from "@sosimple/fsx";
 import type { Encoding } from "./types.js";
 
 const chunkSize = 16384;

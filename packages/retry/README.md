@@ -5,7 +5,7 @@ A library for retrying failed I/O operations.
 Example:
 
 ```typescript
-import { retry, fixedDelay } from "@aradzie/retry";
+import { retry, fixedDelay } from "@sosimple/retry";
 
 class MyService {
 

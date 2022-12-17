@@ -1,5 +1,5 @@
 {
-  "name": "@aradzie/fsx-file",
+  "name": "@sosimple/fsx-file",
   "version": "0.3.2",
   "description": "A library of classes which provide a higher-level object-oriented API around the node's `fs` module.",
   "homepage": "https://github.com/aradzie/fsx/blob/master/packages/fsx-file#readme",
@@ -20,7 +20,7 @@
   "types": "lib/index.d.ts",
   "module": "lib-esm/index.js",
   "dependencies": {
-    "@aradzie/fsx": "^0.3.2",
+    "@sosimple/fsx": "^0.3.2",
     "tslib": "^2.4.1"
   },
   "scripts": {

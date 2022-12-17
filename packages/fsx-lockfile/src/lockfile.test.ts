@@ -1,5 +1,5 @@
-import { Dir, File } from "@aradzie/fsx-file";
-import { fixedDelay, RetryOptions } from "@aradzie/retry";
+import { Dir, File } from "@sosimple/fsx-file";
+import { fixedDelay, RetryOptions } from "@sosimple/retry";
 import test from "ava";
 import { LockFile, LockFileError, LockFileState } from "./lockfile.js";
 

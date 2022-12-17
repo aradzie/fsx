@@ -1,6 +1,6 @@
-import { realpath, rename, unlink } from "@aradzie/fsx";
-import { Encoding, File, FileHandle } from "@aradzie/fsx-file";
-import { Retry, RetryOptions } from "@aradzie/retry";
+import { realpath, rename, unlink } from "@sosimple/fsx";
+import { Encoding, File, FileHandle } from "@sosimple/fsx-file";
+import { Retry, RetryOptions } from "@sosimple/retry";
 import assert from "assert";
 import { resolve } from "path";
 import { track, untrack } from "./cleanup.js";
