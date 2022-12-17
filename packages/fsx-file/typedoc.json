@@ -1,9 +1,8 @@
 {
+  "$schema": "https://typedoc.org/schema.json",
   "out": "../../docs/fsx-file",
-  "inputFiles": ["src/**/*"],
+  "entryPoints": ["./src/index.ts"],
   "exclude": ["**/test/*", "**/*.test.*"],
   "excludeExternals": true,
-  "excludeNotExported": true,
-  "excludePrivate": true,
-  "mode": "modules"
+  "excludePrivate": true
 }
