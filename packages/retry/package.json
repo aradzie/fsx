@@ -3,29 +3,29 @@
   "version": "0.1.0",
   "description": "A library for retrying failed I/O operations.",
   "homepage": "https://github.com/aradzie/fsx/blob/master/packages/retry#readme",
-  "license": "MIT",
-  "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git://github.com/aradzie/fsx.git",
     "directory": "packages/retry"
+  },
+  "license": "MIT",
+  "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
+  "main": "lib/index.js",
+  "module": "lib-esm/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "clean": "rm -fr lib lib-esm",
+    "compile": "tsc && tsc -b tsconfig-esm.json",
+    "test": "ava",
+    "typedoc": "typedoc"
+  },
+  "dependencies": {
+    "tslib": "^2.4.1"
   },
   "engines": {
     "node": ">=16.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "module": "lib-esm/index.js",
-  "dependencies": {
-    "tslib": "^2.4.1"
-  },
-  "scripts": {
-    "clean": "rm -fr lib lib-esm",
-    "compile": "tsc && tsc -b tsconfig-esm.json",
-    "test": "ava",
-    "typedoc": "typedoc"
   }
 }

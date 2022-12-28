@@ -3,32 +3,32 @@
   "version": "0.1.0",
   "description": "A library which allows multiple concurrent processes to safely update shared files.",
   "homepage": "https://github.com/aradzie/fsx/blob/master/packages/fsx-lockfile#readme",
-  "license": "MIT",
-  "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git://github.com/aradzie/fsx.git",
     "directory": "packages/fsx-lockfile"
   },
-  "engines": {
-    "node": ">=16.0"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
+  "license": "MIT",
+  "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "module": "lib-esm/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "clean": "rm -fr lib lib-esm",
+    "compile": "tsc && tsc -b tsconfig-esm.json",
+    "test": "ava",
+    "typedoc": "typedoc"
+  },
   "dependencies": {
     "@sosimple/fsx": "^0.1.0",
     "@sosimple/fsx-file": "^0.1.0",
     "@sosimple/retry": "^0.1.0",
     "tslib": "^2.4.1"
   },
-  "scripts": {
-    "clean": "rm -fr lib lib-esm",
-    "compile": "tsc && tsc -b tsconfig-esm.json",
-    "test": "ava",
-    "typedoc": "typedoc"
+  "engines": {
+    "node": ">=16.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
