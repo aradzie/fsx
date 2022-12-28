@@ -5,7 +5,9 @@
     "rootDir": "src",
     "outDir": "lib-esm",
     "module": "esnext",
-    "declaration": false
+    "declaration": false,
+    "incremental": true,
+    "tsBuildInfoFile": "lib-esm/.tsbuildcache"
   },
   "include": [
     "src/**/*"
