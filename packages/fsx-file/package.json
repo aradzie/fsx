@@ -27,17 +27,5 @@
     "compile": "rm -fr lib && rm -fr lib-esm && tsc && tsc -b tsconfig-esm.json",
     "test": "ava",
     "typedoc": "typedoc"
-  },
-  "ava": {
-    "typescript": {
-      "rewritePaths": {
-        "src/": "lib/"
-      },
-      "compile": false
-    },
-    "files": [
-      "src/**/*.test.ts"
-    ],
-    "serial": true
   }
 }
