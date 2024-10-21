@@ -9,15 +9,7 @@ export default [
     files: ["**/*.{js,ts}"],
   },
   {
-    ignores: [
-      "**/build/",
-      "**/lib/",
-      "**/lib-esm/",
-      "**/lib-cjs/",
-      "**/docs/",
-      "**/sandbox/",
-      "**/tmp/",
-    ],
+    ignores: ["**/lib/", "**/docs/", "**/tmp/"],
   },
   { languageOptions: { globals: globals.node } },
   js.configs["recommended"],

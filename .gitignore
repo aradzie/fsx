@@ -1,7 +1,5 @@
 # Compiled output
 packages/*/lib/
-packages/*/lib-cjs/
-packages/*/lib-esm/
 packages/*/docs/
 build/
 out/

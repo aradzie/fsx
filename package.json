@@ -5,6 +5,7 @@
   "homepage": "https://github.com/aradzie/fsx#readme",
   "repository": "aradzie/fsx",
   "license": "MIT",
+  "type": "module",
   "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
   "workspaces": [
     "packages/*"
