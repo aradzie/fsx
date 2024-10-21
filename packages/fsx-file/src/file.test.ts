@@ -1,5 +1,5 @@
 import test from "ava";
-import type { Readable } from "stream";
+import type { Readable } from "node:stream";
 import { Dir, File } from "./file.js";
 
 const root = new Dir("/tmp/test-fs-file");

@@ -18,7 +18,7 @@ import {
   writeFile,
   WriteStream,
 } from "@sosimple/fsx";
-import { dirname, normalize, resolve } from "path";
+import { dirname, normalize, resolve } from "node:path";
 import { FileHandle } from "./filehandle.js";
 import type {
   AppendOptions,

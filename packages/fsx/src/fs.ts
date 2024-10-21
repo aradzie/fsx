@@ -1,5 +1,5 @@
-import fs from "fs";
-import util from "util";
+import fs from "node:fs";
+import util from "node:util";
 
 export {
   constants,
@@ -13,7 +13,7 @@ export {
   ReadStream,
   Stats,
   WriteStream,
-} from "fs";
+} from "node:fs";
 
 export const access = util.promisify(fs.access);
 export const accessSync = fs.accessSync;

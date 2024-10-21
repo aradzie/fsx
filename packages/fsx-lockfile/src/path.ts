@@ -1,5 +1,5 @@
-import { createHash } from "crypto";
-import { parse } from "path";
+import { createHash } from "node:crypto";
+import { parse } from "node:path";
 
 export function expandPathTemplate(template: string, path: string): string {
   if (template === "[path].lock") {
