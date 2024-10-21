@@ -4,7 +4,8 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib-esm",
-    "module": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "declaration": false,
     "incremental": true,
     "tsBuildInfoFile": "lib-esm/.tsbuildcache"

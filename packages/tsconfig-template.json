@@ -1,9 +1,6 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "alwaysStrict": true,
     "declaration": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
@@ -11,8 +8,6 @@
     "importHelpers": true,
     "importsNotUsedAsValues": "remove",
     "lib": ["es2022"],
-    "module": "commonjs",
-    "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -21,6 +16,6 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2020"
+    "target": "es2022"
   }
 }
