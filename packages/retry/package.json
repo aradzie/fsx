@@ -20,7 +20,7 @@
     "typedoc": "typedoc"
   },
   "dependencies": {
-    "tslib": "^2.4.1"
+    "tslib": "^2.8.0"
   },
   "engines": {
     "node": ">=16.0"

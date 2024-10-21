@@ -213,7 +213,10 @@ export class LockFile {
 
   private [kState] = LockFileState.LOCKED;
 
-  constructor(public readonly file: File, public readonly lock: FileHandle) {
+  constructor(
+    public readonly file: File,
+    public readonly lock: FileHandle,
+  ) {
     track(this.lock.name);
   }
 
@@ -276,7 +279,6 @@ export class LockFile {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function expand(options: LockFileOptions) {
   return {
     staleAfter: 3_600_000, // One hour.

@@ -23,7 +23,7 @@
     "@sosimple/fsx": "^0.1.0",
     "@sosimple/fsx-file": "^0.1.0",
     "@sosimple/retry": "^0.1.0",
-    "tslib": "^2.4.1"
+    "tslib": "^2.8.0"
   },
   "engines": {
     "node": ">=16.0"
