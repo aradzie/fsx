@@ -1,8 +1,10 @@
 import assert from "node:assert";
 import { resolve } from "node:path";
 import { realpath, rename, unlink } from "@sosimple/fsx";
-import { Encoding, File, FileHandle } from "@sosimple/fsx-file";
-import { Retry, RetryOptions } from "@sosimple/retry";
+import type { Encoding, FileHandle } from "@sosimple/fsx-file";
+import { File } from "@sosimple/fsx-file";
+import type { RetryOptions } from "@sosimple/retry";
+import { Retry } from "@sosimple/retry";
 import { track, untrack } from "./cleanup.js";
 import { debuglog } from "./debug.js";
 import { expandPathTemplate } from "./path.js";

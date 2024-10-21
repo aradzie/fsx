@@ -1,4 +1,10 @@
 import { dirname, normalize, resolve } from "node:path";
+import type {
+  ReadStream,
+  Stats,
+  TouchOptions,
+  WriteStream,
+} from "@sosimple/fsx";
 import {
   access,
   appendFile,
@@ -8,16 +14,12 @@ import {
   emptyDir,
   mkdir,
   readFile,
-  ReadStream,
   removeDir,
   stat,
-  Stats,
   touch,
-  TouchOptions,
   unlink,
   utimes,
   writeFile,
-  WriteStream,
 } from "@sosimple/fsx";
 import { FileHandle } from "./filehandle.js";
 import type {

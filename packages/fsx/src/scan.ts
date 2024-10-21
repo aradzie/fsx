@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import type { Stats } from "./fs.js";
 import {
   lstat,
   lstatSync,
@@ -6,7 +7,6 @@ import {
   readdirSync,
   rmdir,
   rmdirSync,
-  Stats,
   unlink,
   unlinkSync,
 } from "./fs.js";

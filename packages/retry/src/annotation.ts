@@ -1,4 +1,5 @@
-import { Retry, RetryOptions } from "./retry.js";
+import type { RetryOptions } from "./retry.js";
+import { Retry } from "./retry.js";
 
 /**
  * Annotation options.

@@ -1,3 +1,4 @@
+import type { Stats } from "@sosimple/fsx";
 import {
   close,
   fchmod,
@@ -9,7 +10,6 @@ import {
   futimes,
   open,
   read,
-  Stats,
   write,
 } from "@sosimple/fsx";
 import type { Encoding } from "./types.js";

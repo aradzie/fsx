@@ -7,13 +7,12 @@ export {
   createWriteStream,
   Dir,
   Dirent,
-  FSWatcher,
-  PathLike,
   promises,
   ReadStream,
   Stats,
   WriteStream,
 } from "node:fs";
+export { type FSWatcher, type PathLike } from "node:fs";
 
 export const access = util.promisify(fs.access);
 export const accessSync = fs.accessSync;
