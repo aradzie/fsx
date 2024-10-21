@@ -1,6 +1,6 @@
+import cluster from "node:cluster";
 import { File } from "@sosimple/fsx-file";
 import { exponentialDelay, RetryOptions } from "@sosimple/retry";
-import cluster from "node:cluster";
 import { LockFile } from "./lockfile.js";
 import { pause } from "./pause.js";
 

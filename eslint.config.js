@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import ava from "eslint-plugin-ava";
 import node from "eslint-plugin-n";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
 import ts from "typescript-eslint";
 
@@ -32,6 +33,18 @@ export default [
       "n/prefer-node-protocol": "error",
       "n/prefer-promises/dns": "error",
       "n/prefer-promises/fs": "error",
+    },
+  },
+  {
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
+    rules: {
+      "simple-import-sort/imports": [
+        "error",
+        { groups: [["^\\u0000", "^node:", "^@?\\w", "^", "^\\."]] },
+      ],
+      "simple-import-sort/exports": ["error"],
     },
   },
   {
