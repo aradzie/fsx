@@ -8,16 +8,19 @@
   "type": "module",
   "author": "Aliaksandr Radzivanovich <aradzivanovich@gmail.com>",
   "workspaces": [
-    "packages/*"
+    "packages/fsx",
+    "packages/fsx-file",
+    "packages/retry",
+    "packages/fsx-lockfile"
   ],
   "scripts": {
-    "clean": "lerna run clean",
-    "compile": "lerna run compile",
+    "clean": "npm run clean --workspaces",
+    "compile": "npm run compile --workspaces",
     "format": "prettier '{**/*,*}.{js,ts}' --write",
     "lint": "eslint '{**/*,*}.{js,ts}'",
     "lint-fix": "eslint '{**/*,*}.{js,ts}' --fix",
     "pretest": "npm run compile",
-    "test": "lerna run test"
+    "test": "npm run test --workspaces"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -26,7 +29,6 @@
     "eslint-plugin-n": "^18.3.0",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "globals": "^17.12.0",
-    "lerna": "^10.0.1",
     "prettier": "^3.9.8",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1"
