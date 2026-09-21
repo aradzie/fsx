@@ -1,4 +1,4 @@
-# Retry ([API Doc](https://aradzie.github.io/fsx/retry/))
+# Retry
 
 A library for retrying failed I/O operations.
 

@@ -16,8 +16,7 @@
   "scripts": {
     "clean": "rm -fr lib",
     "compile": "tsc",
-    "test": "ava",
-    "typedoc": "typedoc"
+    "test": "ava"
   },
   "dependencies": {
     "@sosimple/fsx": "^0.2.1",

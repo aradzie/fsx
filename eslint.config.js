@@ -9,7 +9,7 @@ export default [
     files: ["**/*.{js,ts}"],
   },
   {
-    ignores: ["**/lib/", "**/docs/", "**/tmp/"],
+    ignores: ["**/lib/", "**/tmp/"],
   },
   { languageOptions: { globals: globals.node } },
   js.configs["recommended"],

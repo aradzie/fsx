@@ -16,8 +16,7 @@
   "scripts": {
     "clean": "rm -fr lib",
     "compile": "tsc",
-    "test": "ava",
-    "typedoc": "typedoc"
+    "test": "ava"
   },
   "dependencies": {
     "tslib": "^2.8.1"

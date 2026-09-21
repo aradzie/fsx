@@ -1,6 +1,5 @@
 # Compiled output
 packages/*/lib/
-packages/*/docs/
 build/
 out/
 
