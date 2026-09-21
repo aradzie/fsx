@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { join, parse, sep } from "node:path";
 import type { Stats } from "./fs.js";
 import {
   lstat,
@@ -13,24 +13,25 @@ import {
 
 export interface Entry {
   /**
-   * Path to this entry, relative to the input dir path.
+   * The path to this entry, relative to the directory being scanned.
    */
   readonly path: string;
   /**
-   * Entry stats.
+   * Filesystem metadata for this entry.
    */
   readonly stats: Stats;
 }
 
 /**
- * Performs recursive pre-order traversal of the given directory
- * for all its contents.
+ * Recursively traverses the contents of the given directory in pre-order.
  * The directory itself is excluded.
- * Symlinks are not followed.
+ * Symlink entries are not followed; a symlink root is rejected.
+ * Traversal is not atomic with respect to concurrent filesystem changes.
  * @param dir The directory to scan.
- * @return An iterator of all directory contents.
+ * @return An iterable of entries in the directory.
  */
 export async function* scanDir(dir: string): AsyncIterable<Entry> {
+  checkRoot(dir, await safeLstat(rootPath(dir)));
   for (const item of await safeReaddir(dir)) {
     yield* scan(dir, item);
   }
@@ -41,7 +42,8 @@ async function* scan(dir: string, suffix: string): AsyncIterable<Entry> {
   const stats = await safeLstat(path);
   if (stats != null) {
     yield { path: suffix, stats };
-    if (stats.isDirectory()) {
+    // The consumer may have replaced the directory while iteration was paused.
+    if (stats.isDirectory() && (await safeLstat(path))?.isDirectory()) {
       for (const item of await safeReaddir(path)) {
         yield* scan(dir, join(suffix, item));
       }
@@ -50,14 +52,15 @@ async function* scan(dir: string, suffix: string): AsyncIterable<Entry> {
 }
 
 /**
- * Performs recursive pre-order traversal of the given directory
- * for all its contents.
+ * Recursively traverses the contents of the given directory in pre-order.
  * The directory itself is excluded.
- * Symlinks are not followed.
+ * Symlink entries are not followed; a symlink root is rejected.
+ * Traversal is not atomic with respect to concurrent filesystem changes.
  * @param dir The directory to scan.
- * @return An iterator of all directory contents.
+ * @return An iterable of entries in the directory.
  */
 export function* scanDirSync(dir: string): Iterable<Entry> {
+  checkRoot(dir, safeLstatSync(rootPath(dir)));
   for (const item of safeReaddirSync(dir)) {
     yield* scanSync(dir, item);
   }
@@ -68,7 +71,8 @@ function* scanSync(dir: string, suffix: string): Iterable<Entry> {
   const stats = safeLstatSync(path);
   if (stats != null) {
     yield { path: suffix, stats };
-    if (stats.isDirectory()) {
+    // The consumer may have replaced the directory while iteration was paused.
+    if (stats.isDirectory() && safeLstatSync(path)?.isDirectory()) {
       for (const item of safeReaddirSync(path)) {
         yield* scanSync(dir, join(suffix, item));
       }
@@ -77,9 +81,10 @@ function* scanSync(dir: string, suffix: string): Iterable<Entry> {
 }
 
 /**
- * Recursively removes all contents form the given directory. The directory
+ * Recursively removes all contents from the given directory. The directory
  * itself is not removed.
- * If the directory does not exist then this method does nothing.
+ * If the directory does not exist, this function does nothing.
+ * Symlink roots are rejected; symlink entries are unlinked without following them.
  * @param dir The directory to empty.
  */
 export async function emptyDir(dir: string): Promise<void> {
@@ -89,9 +94,10 @@ export async function emptyDir(dir: string): Promise<void> {
 }
 
 /**
- * Recursively removes all contents form the given directory. The directory
+ * Recursively removes all contents from the given directory. The directory
  * itself is not removed.
- * If the directory does not exist then this method does nothing.
+ * If the directory does not exist, this function does nothing.
+ * Symlink roots are rejected; symlink entries are unlinked without following them.
  * @param dir The directory to empty.
  */
 export function emptyDirSync(dir: string): void {
@@ -101,8 +107,9 @@ export function emptyDirSync(dir: string): void {
 }
 
 /**
- * Recursively removes the given directory with all its content.
- * If the directory does not exist then this method does nothing.
+ * Recursively removes the given directory and all its contents.
+ * If the directory does not exist, this function does nothing.
+ * Symlink roots are rejected; symlink entries are unlinked without following them.
  * @param dir The directory to remove.
  */
 export async function removeDir(dir: string): Promise<void> {
@@ -119,8 +126,9 @@ export async function removeDir(dir: string): Promise<void> {
 }
 
 /**
- * Recursively removes the given directory with all its content.
- * If the directory does not exist then this method does nothing.
+ * Recursively removes the given directory and all its contents.
+ * If the directory does not exist, this function does nothing.
+ * Symlink roots are rejected; symlink entries are unlinked without following them.
  * @param dir The directory to remove.
  */
 export function removeDirSync(dir: string): void {
@@ -137,12 +145,14 @@ export function removeDirSync(dir: string): void {
 }
 
 async function* start(dir: string): AsyncIterable<Entry> {
+  checkRoot(dir, await safeLstat(rootPath(dir)));
   for (const item of await safeReaddir(dir)) {
     yield* postOrderScan(join(dir, item));
   }
 }
 
 function* startSync(dir: string): Iterable<Entry> {
+  checkRoot(dir, safeLstatSync(rootPath(dir)));
   for (const item of safeReaddirSync(dir)) {
     yield* postOrderScanSync(join(dir, item));
   }
@@ -179,7 +189,7 @@ function* postOrderScanSync(dir: string): Iterable<Entry> {
 }
 
 /**
- * Deletes filesystem entry, directory or file.
+ * Deletes a filesystem entry, whether it is a directory, file, or symlink.
  */
 async function kill({ path, stats }: Entry): Promise<void> {
   try {
@@ -196,7 +206,7 @@ async function kill({ path, stats }: Entry): Promise<void> {
 }
 
 /**
- * Deletes filesystem entry, directory or file.
+ * Deletes a filesystem entry, whether it is a directory, file, or symlink.
  */
 function killSync({ path, stats }: Entry): void {
   try {
@@ -257,5 +267,23 @@ function safeLstatSync(path: string): Stats | null {
     } else {
       throw err;
     }
+  }
+}
+
+// Remove trailing separators so lstat inspects the root symlink itself.
+function rootPath(dir: string): string {
+  const rootLength = parse(dir).root.length;
+  while (dir.length > rootLength && dir.endsWith(sep)) {
+    dir = dir.slice(0, -1);
+  }
+  return dir;
+}
+
+function checkRoot(path: string, stats: Stats | null): void {
+  if (stats != null && !stats.isDirectory()) {
+    throw Object.assign(new Error(`Not a directory: ${path}`), {
+      code: "ENOTDIR",
+      path,
+    });
   }
 }

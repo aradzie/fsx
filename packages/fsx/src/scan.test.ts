@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
-import test, { afterEach, beforeEach } from "node:test";
+import { tmpdir } from "node:os";
+import { join, sep } from "node:path";
+import type { TestContext } from "node:test";
+import test from "node:test";
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
-  rmdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
   symlinkSync,
-  unlinkSync,
   writeFileSync,
 } from "./fs.js";
 import {
@@ -17,157 +23,143 @@ import {
   scanDirSync,
 } from "./scan.js";
 
-beforeEach(() => {
-  mkdirSync("/tmp/scan-test-dir/a/1", { recursive: true });
-  mkdirSync("/tmp/scan-test-dir/b/2", { recursive: true });
-  writeFileSync("/tmp/scan-test-dir/b/2/file1", "something");
-  symlinkSync("./file1", "/tmp/scan-test-dir/b/2/file2");
-});
-
-afterEach(() => {
-  safeRmdirSync("/tmp/scan-test-dir/a/1");
-  safeRmdirSync("/tmp/scan-test-dir/a");
-  safeUnlinkSync("/tmp/scan-test-dir/b/2/file1");
-  safeUnlinkSync("/tmp/scan-test-dir/b/2/file2");
-  safeRmdirSync("/tmp/scan-test-dir/b/2");
-  safeRmdirSync("/tmp/scan-test-dir/b");
-  safeRmdirSync("/tmp/scan-test-dir");
-});
-
-test("scan of a missing dir - async", async () => {
-  await assert.doesNotReject(async () => {
-    await scanDir("/this/directory/does/not/exist");
-  });
-});
-
-test("scan of a missing dir - sync", () => {
-  assert.doesNotThrow(() => {
-    scanDirSync("/this/directory/does/not/exist");
-  });
-});
-
-test("scan skips over deleted entries - async", async () => {
-  const it = scanDir("/tmp/scan-test-dir")[Symbol.asyncIterator]();
-
-  const a = await it.next();
-  assert.strictEqual(a.done, false);
-  assert.strictEqual(a.value.path, "a");
-
-  rmdirSync("/tmp/scan-test-dir/a/1");
-  rmdirSync("/tmp/scan-test-dir/a");
-
-  const b = await it.next();
-  assert.strictEqual(b.done, false);
-  assert.strictEqual(b.value.path, "b");
-
-  unlinkSync("/tmp/scan-test-dir/b/2/file1");
-  unlinkSync("/tmp/scan-test-dir/b/2/file2");
-  rmdirSync("/tmp/scan-test-dir/b/2");
-  rmdirSync("/tmp/scan-test-dir/b");
-
-  const c = await it.next();
-  assert.strictEqual(c.done, true);
-});
-
-test("scan skips over deleted entries - sync", () => {
-  const it = scanDirSync("/tmp/scan-test-dir")[Symbol.iterator]();
-
-  const a = it.next();
-  assert.strictEqual(a.done, false);
-  assert.strictEqual(a.value.path, "a");
-
-  rmdirSync("/tmp/scan-test-dir/a/1");
-  rmdirSync("/tmp/scan-test-dir/a");
-
-  const b = it.next();
-  assert.strictEqual(b.done, false);
-  assert.strictEqual(b.value.path, "b");
-
-  unlinkSync("/tmp/scan-test-dir/b/2/file1");
-  unlinkSync("/tmp/scan-test-dir/b/2/file2");
-  rmdirSync("/tmp/scan-test-dir/b/2");
-  rmdirSync("/tmp/scan-test-dir/b");
-
-  const c = it.next();
-  assert.strictEqual(c.done, true);
-});
-
-test("scan of an existing dir - async", async () => {
-  const entries = [];
-  for await (const entry of scanDir("/tmp/scan-test-dir")) {
-    entries.push(entry);
-  }
-
-  assert.deepStrictEqual(
-    entries.map(({ path }) => path),
-    ["a", "a/1", "b", "b/2", "b/2/file1", "b/2/file2"],
-  );
-  assert.strictEqual(entries[0].stats.isDirectory(), true);
-  assert.strictEqual(entries[1].stats.isDirectory(), true);
-  assert.strictEqual(entries[2].stats.isDirectory(), true);
-  assert.strictEqual(entries[3].stats.isDirectory(), true);
-  assert.strictEqual(entries[4].stats.isFile(), true);
-  assert.strictEqual(entries[5].stats.isSymbolicLink(), true);
-});
-
-test("scan of an existing dir - sync", () => {
-  const entries = [];
-  for (const entry of scanDirSync("/tmp/scan-test-dir")) {
-    entries.push(entry);
-  }
-
-  assert.deepStrictEqual(
-    entries.map(({ path }) => path),
-    ["a", "a/1", "b", "b/2", "b/2/file1", "b/2/file2"],
-  );
-  assert.strictEqual(entries[0].stats.isDirectory(), true);
-  assert.strictEqual(entries[1].stats.isDirectory(), true);
-  assert.strictEqual(entries[2].stats.isDirectory(), true);
-  assert.strictEqual(entries[3].stats.isDirectory(), true);
-  assert.strictEqual(entries[4].stats.isFile(), true);
-  assert.strictEqual(entries[5].stats.isSymbolicLink(), true);
-});
-
-test("empty dir - async", async () => {
-  await emptyDir("/tmp/scan-test-dir");
-
-  assert.strictEqual(existsSync("/tmp/scan-test-dir"), true);
-  assert.strictEqual(existsSync("/tmp/scan-test-dir/a"), false);
-  assert.strictEqual(existsSync("/tmp/scan-test-dir/b"), false);
-});
-
-test("empty dir - sync", () => {
-  emptyDirSync("/tmp/scan-test-dir");
-
-  assert.strictEqual(existsSync("/tmp/scan-test-dir"), true);
-  assert.strictEqual(existsSync("/tmp/scan-test-dir/a"), false);
-  assert.strictEqual(existsSync("/tmp/scan-test-dir/b"), false);
-});
-
-test("remove dir - async", async () => {
-  await removeDir("/tmp/scan-test-dir");
-
-  assert.strictEqual(existsSync("/tmp/scan-test-dir"), false);
-});
-
-test("remove dir - sync", () => {
-  removeDirSync("/tmp/scan-test-dir");
-
-  assert.strictEqual(existsSync("/tmp/scan-test-dir"), false);
-});
-
-function safeRmdirSync(path: string): void {
-  try {
-    rmdirSync(path);
-  } catch {
-    /* Ignore. */
-  }
+function fixture(t: TestContext): string {
+  const root = mkdtempSync(join(tmpdir(), "fsx-scan-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  return root;
 }
 
-function safeUnlinkSync(path: string): void {
-  try {
-    unlinkSync(path);
-  } catch {
-    /* Ignore. */
+function populate(root: string): void {
+  mkdirSync(join(root, "a", "1"), { recursive: true });
+  mkdirSync(join(root, "b", "2"), { recursive: true });
+  writeFileSync(join(root, "b", "2", "file1"), "something");
+  symlinkSync("./file1", join(root, "b", "2", "file2"));
+}
+
+for (const [kind, scan, empty, remove] of [
+  ["async", scanDir, emptyDir, removeDir],
+  ["sync", scanDirSync, emptyDirSync, removeDirSync],
+] as const) {
+  test(`scans a missing directory - ${kind}`, async (t) => {
+    const entries = [];
+    for await (const entry of scan(join(fixture(t), "missing")))
+      entries.push(entry);
+    assert.deepEqual(entries, []);
+  });
+
+  test(`scans contents in pre-order - ${kind}`, async (t) => {
+    const root = fixture(t);
+    populate(root);
+    const entries = [];
+    for await (const entry of scan(root)) entries.push(entry);
+    assert.equal(entries.length, 6);
+    const byPath = new Map(entries.map((entry) => [entry.path, entry.stats]));
+    for (const path of ["a", join("a", "1"), "b", join("b", "2")]) {
+      assert.equal(byPath.get(path)?.isDirectory(), true);
+    }
+    assert.equal(byPath.get(join("b", "2", "file1"))?.isFile(), true);
+    assert.equal(byPath.get(join("b", "2", "file2"))?.isSymbolicLink(), true);
+    // Sibling order is unspecified; each parent must precede its descendants.
+    const paths = entries.map((entry) => entry.path);
+    for (const [parent, child] of [
+      ["a", join("a", "1")],
+      ["b", join("b", "2")],
+      [join("b", "2"), join("b", "2", "file1")],
+      [join("b", "2"), join("b", "2", "file2")],
+    ]) {
+      assert.ok(paths.indexOf(parent) < paths.indexOf(child));
+    }
+  });
+
+  for (const replacement of ["missing", "symlink", "file"]) {
+    test(`skips a directory replaced with ${replacement} while paused - ${kind}`, async (t) => {
+      const root = fixture(t);
+      const dir = join(root, "scan");
+      const child = join(dir, "child");
+      const outside = join(root, "outside");
+      mkdirSync(child, { recursive: true });
+      mkdirSync(outside);
+      writeFileSync(join(outside, "keep"), "keep");
+      let count = 0;
+      for await (const entry of scan(dir)) {
+        assert.equal(entry.path, "child");
+        count++;
+        rmSync(child, { recursive: true });
+        if (replacement === "symlink") symlinkSync(outside, child, "dir");
+        if (replacement === "file") writeFileSync(child, "replacement");
+      }
+      assert.equal(count, 1);
+    });
+  }
+
+  test(`does not follow directory or dangling symlink entries - ${kind}`, async (t) => {
+    const root = fixture(t);
+    const dir = join(root, "scan");
+    mkdirSync(dir);
+    symlinkSync(root, join(dir, "loop"), "dir");
+    symlinkSync(join(root, "missing"), join(dir, "dangling"));
+    const entries = [];
+    for await (const entry of scan(dir)) entries.push(entry);
+    assert.equal(entries.length, 2);
+    assert.ok(entries.every((entry) => entry.stats.isSymbolicLink()));
+  });
+
+  for (const [operation, run] of [
+    [
+      "scan",
+      async (dir: string) => {
+        for await (const entry of scan(dir)) void entry;
+      },
+    ],
+    ["empty", empty],
+    ["remove", remove],
+  ] as const) {
+    for (const trailing of ["", sep]) {
+      test(`${operation} rejects a symlink root without modifying its target (trailing: ${!!trailing}) - ${kind}`, async (t) => {
+        const root = fixture(t);
+        const target = join(root, "target");
+        const link = join(root, "link");
+        mkdirSync(target);
+        writeFileSync(join(target, "keep"), "keep");
+        symlinkSync(target, link, "dir");
+        await assert.rejects(async () => run(link + trailing), {
+          code: "ENOTDIR",
+        });
+        assert.equal(readFileSync(join(target, "keep"), "utf8"), "keep");
+        assert.equal(lstatSync(link).isSymbolicLink(), true);
+      });
+    }
+    test(`${operation} rejects a regular file root - ${kind}`, async (t) => {
+      const file = join(fixture(t), "file");
+      writeFileSync(file, "keep");
+      await assert.rejects(async () => run(file), { code: "ENOTDIR" });
+      assert.equal(readFileSync(file, "utf8"), "keep");
+    });
+  }
+
+  for (const [operation, run] of [
+    ["empty", empty],
+    ["remove", remove],
+  ] as const) {
+    test(`${operation} handles a missing directory - ${kind}`, async (t) => {
+      const missing = join(fixture(t), "missing");
+      await run(missing);
+      assert.equal(existsSync(missing), false);
+    });
+
+    test(`${operation} removes nested contents and preserves symlink targets - ${kind}`, async (t) => {
+      const root = fixture(t);
+      const dir = join(root, "contents");
+      populate(dir);
+      const outside = join(root, "outside");
+      mkdirSync(outside);
+      writeFileSync(join(outside, "keep"), "keep");
+      symlinkSync(outside, join(dir, "link"), "dir");
+      symlinkSync(join(root, "missing"), join(dir, "dangling"));
+      await run(dir);
+      if (operation === "empty") assert.deepEqual(readdirSync(dir), []);
+      else assert.equal(existsSync(dir), false);
+      assert.equal(readFileSync(join(outside, "keep"), "utf8"), "keep");
+    });
   }
 }
