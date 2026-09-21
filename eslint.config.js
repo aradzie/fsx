@@ -1,5 +1,4 @@
 import js from "@eslint/js";
-import ava from "eslint-plugin-ava";
 import node from "eslint-plugin-n";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
@@ -16,7 +15,6 @@ export default [
   js.configs["recommended"],
   ...ts.configs["recommended"],
   node.configs["flat/recommended-script"],
-  ava.configs["flat/recommended"],
   {
     rules: {
       "eqeqeq": ["error", "always", { null: "never" }],
@@ -53,7 +51,7 @@ export default [
   {
     files: ["**/*.test.ts"],
     rules: {
-      "n/no-extraneous-import": ["error", { allowModules: ["ava"] }],
+      "n/no-extraneous-import": ["error"],
     },
   },
 ];
