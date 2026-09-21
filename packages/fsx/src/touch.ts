@@ -9,47 +9,57 @@ import {
   mkdirSync,
   open,
   openSync,
+  utimes,
+  utimesSync,
 } from "./fs.js";
 
 /**
- * Touch options.
+ * Options for touching a file.
  */
 export interface TouchOptions {
   /**
-   * Whether to create a new file if it does not exist.
+   * Whether to create the file if it does not exist. Defaults to true.
    */
   readonly create?: boolean;
   /**
-   * Set the file modification time to this value.
+   * The value to use for the file's access and modification times.
+   * Defaults to the current time.
    */
   readonly now?: Date;
 }
 
 /**
- * Updates the modification time the specified file.
- * If the file does not exist, a new empty one will be created.
+ * Updates the access and modification times of the specified file.
+ * Creates an empty file if it does not exist, unless `create` is false.
  *
- * @param name Name of the file to touch.
- * @param options Touch options.
- * @return A boolean value indicating whether the modification time
- *         of the existing file was updated or a new empty file was created.
+ * @param name The path to the file to touch.
+ * @param options Options for touching the file.
+ * @return Whether the file's timestamps were updated or an empty file was created.
  */
 export async function touch(
   name: string,
   options: TouchOptions = {},
 ): Promise<boolean> {
   const { create = true, now = new Date() } = options;
-  let flags = constants.O_RDWR;
-  if (create) {
-    flags = flags | constants.O_CREAT;
+  try {
+    await utimes(name, now, now);
+    return true;
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+    if (!create) {
+      return false;
+    }
   }
   try {
-    if (create) {
-      await mkdir(dirname(name), { recursive: true });
+    await mkdir(dirname(name), { recursive: true });
+    const fd = await open(name, constants.O_WRONLY | constants.O_CREAT);
+    try {
+      await futimes(fd, now, now);
+    } finally {
+      await close(fd);
     }
-    const fd = await open(name, flags);
-    await futimes(fd, now, now);
-    await close(fd);
     return true;
   } catch (err: any) {
     if (err.code === "ENOENT") {
@@ -61,27 +71,34 @@ export async function touch(
 }
 
 /**
- * Updates the modification time the specified file.
- * If the file does not exist, a new empty one will be created.
+ * Updates the access and modification times of the specified file.
+ * Creates an empty file if it does not exist, unless `create` is false.
  *
- * @param name Name of the file to touch.
- * @param options Touch options.
- * @return A boolean value indicating whether the modification time
- *         of the existing file was updated or a new empty file was created.
+ * @param name The path to the file to touch.
+ * @param options Options for touching the file.
+ * @return Whether the file's timestamps were updated or an empty file was created.
  */
 export function touchSync(name: string, options: TouchOptions = {}): boolean {
   const { create = true, now = new Date() } = options;
-  let flags = constants.O_RDWR;
-  if (create) {
-    flags = flags | constants.O_CREAT;
+  try {
+    utimesSync(name, now, now);
+    return true;
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+    if (!create) {
+      return false;
+    }
   }
   try {
-    if (create) {
-      mkdirSync(dirname(name), { recursive: true });
+    mkdirSync(dirname(name), { recursive: true });
+    const fd = openSync(name, constants.O_WRONLY | constants.O_CREAT);
+    try {
+      futimesSync(fd, now, now);
+    } finally {
+      closeSync(fd);
     }
-    const fd = openSync(name, flags);
-    futimesSync(fd, now, now);
-    closeSync(fd);
     return true;
   } catch (err: any) {
     if (err.code === "ENOENT") {
