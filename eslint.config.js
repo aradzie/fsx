@@ -48,10 +48,4 @@ export default [
       "simple-import-sort/exports": ["error"],
     },
   },
-  {
-    files: ["**/*.test.ts"],
-    rules: {
-      "n/no-extraneous-import": ["error"],
-    },
-  },
 ];

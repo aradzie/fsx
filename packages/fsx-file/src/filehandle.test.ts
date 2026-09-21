@@ -1,20 +1,21 @@
-import test from "ava";
+import assert from "node:assert/strict";
+import test, { afterEach, beforeEach } from "node:test";
 import { Dir, File } from "./file.js";
 import { FileHandle } from "./filehandle.js";
 
 const root = new Dir("/tmp/test-fs-filehandle");
 const file = new File("/tmp/test-fs-filehandle/file");
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await root.remove();
   await root.create();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   await root.remove();
 });
 
-test.serial("read from file", async (t) => {
+test("read from file", async () => {
   // Arrange.
 
   const content = "abc\n".repeat(10_000);
@@ -28,10 +29,10 @@ test.serial("read from file", async (t) => {
 
   // Assert.
 
-  t.is(content, read);
+  assert.strictEqual(content, read);
 });
 
-test.serial("write to file", async (t) => {
+test("write to file", async () => {
   // Act.
 
   const handle = await FileHandle.open(file.name, "w");
@@ -42,10 +43,10 @@ test.serial("write to file", async (t) => {
 
   // Assert.
 
-  t.is(await file.read("utf8"), "tre\n");
+  assert.strictEqual(await file.read("utf8"), "tre\n");
 });
 
-test.serial("append to file", async (t) => {
+test("append to file", async () => {
   // Act.
 
   const handle = await FileHandle.open(file.name, "w");
@@ -56,10 +57,10 @@ test.serial("append to file", async (t) => {
 
   // Assert.
 
-  t.is(await file.read("utf8"), "uno\ndue\ntre\n");
+  assert.strictEqual(await file.read("utf8"), "uno\ndue\ntre\n");
 });
 
-test.serial("write then append then read from file", async (t) => {
+test("write then append then read from file", async () => {
   // Arrange.
 
   const a = "aaa".repeat(100_000) + "\n";
@@ -77,5 +78,5 @@ test.serial("write then append then read from file", async (t) => {
 
   // Assert.
 
-  t.is(read, a + b + c);
+  assert.strictEqual(read, a + b + c);
 });

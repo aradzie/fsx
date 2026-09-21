@@ -1,4 +1,5 @@
-import test from "ava";
+import assert from "node:assert/strict";
+import test, { afterEach, beforeEach } from "node:test";
 import {
   existsSync,
   mkdirSync,
@@ -9,101 +10,101 @@ import {
 } from "./fs.js";
 import { touch, touchSync } from "./touch.js";
 
-test.beforeEach(() => {
+beforeEach(() => {
   safeUnlinkSync("/tmp/touch-test-dir/touch-test-file");
   safeRmdirSync("/tmp/touch-test-dir");
 });
 
-test.afterEach(() => {
+afterEach(() => {
   safeUnlinkSync("/tmp/touch-test-dir/touch-test-file");
   safeRmdirSync("/tmp/touch-test-dir");
 });
 
-test.serial(
-  "with create new file option enabled on a missing file - async",
-  async (t) => {
-    t.true(
-      await touch("/tmp/touch-test-dir/touch-test-file", {
-        now: new Date(1000),
-      }),
-    );
+test("with create new file option enabled on a missing file - async", async () => {
+  assert.strictEqual(
+    await touch("/tmp/touch-test-dir/touch-test-file", {
+      now: new Date(1000),
+    }),
+    true,
+  );
 
-    t.is(statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs, 1000);
-  },
-);
+  assert.strictEqual(
+    statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs,
+    1000,
+  );
+});
 
-test.serial(
-  "with create new file option enabled on a missing file - sync",
-  (t) => {
-    t.true(
-      touchSync("/tmp/touch-test-dir/touch-test-file", {
-        now: new Date(1000),
-      }),
-    );
+test("with create new file option enabled on a missing file - sync", () => {
+  assert.strictEqual(
+    touchSync("/tmp/touch-test-dir/touch-test-file", {
+      now: new Date(1000),
+    }),
+    true,
+  );
 
-    t.is(statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs, 1000);
-  },
-);
+  assert.strictEqual(
+    statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs,
+    1000,
+  );
+});
 
-test.serial(
-  "without create new file option enabled on a missing file - async",
-  async (t) => {
-    t.false(
-      await touch("/tmp/touch-test-dir/touch-test-file", {
-        create: false,
-      }),
-    );
+test("without create new file option enabled on a missing file - async", async () => {
+  assert.strictEqual(
+    await touch("/tmp/touch-test-dir/touch-test-file", {
+      create: false,
+    }),
+    false,
+  );
 
-    t.false(existsSync("/tmp/touch-test-dir"));
-    t.false(existsSync("/tmp/touch-test-dir/touch-test-file"));
-  },
-);
+  assert.strictEqual(existsSync("/tmp/touch-test-dir"), false);
+  assert.strictEqual(existsSync("/tmp/touch-test-dir/touch-test-file"), false);
+});
 
-test.serial(
-  "without create new file option enabled on a missing file - sync",
-  (t) => {
-    t.false(
-      touchSync("/tmp/touch-test-dir/touch-test-file", { create: false }),
-    );
+test("without create new file option enabled on a missing file - sync", () => {
+  assert.strictEqual(
+    touchSync("/tmp/touch-test-dir/touch-test-file", { create: false }),
+    false,
+  );
 
-    t.false(existsSync("/tmp/touch-test-dir"));
-    t.false(existsSync("/tmp/touch-test-dir/touch-test-file"));
-  },
-);
+  assert.strictEqual(existsSync("/tmp/touch-test-dir"), false);
+  assert.strictEqual(existsSync("/tmp/touch-test-dir/touch-test-file"), false);
+});
 
-test.serial(
-  "with create new file option disabled on an existing file - async",
-  async (t) => {
-    mkdirSync("/tmp/touch-test-dir", { recursive: true });
-    writeFileSync("/tmp/touch-test-dir/touch-test-file", "something");
+test("with create new file option disabled on an existing file - async", async () => {
+  mkdirSync("/tmp/touch-test-dir", { recursive: true });
+  writeFileSync("/tmp/touch-test-dir/touch-test-file", "something");
 
-    t.true(
-      await touch("/tmp/touch-test-dir/touch-test-file", {
-        create: false,
-        now: new Date(1000),
-      }),
-    );
+  assert.strictEqual(
+    await touch("/tmp/touch-test-dir/touch-test-file", {
+      create: false,
+      now: new Date(1000),
+    }),
+    true,
+  );
 
-    t.is(statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs, 1000);
-  },
-);
+  assert.strictEqual(
+    statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs,
+    1000,
+  );
+});
 
-test.serial(
-  "with create new file option disabled on an existing file - sync",
-  (t) => {
-    mkdirSync("/tmp/touch-test-dir", { recursive: true });
-    writeFileSync("/tmp/touch-test-dir/touch-test-file", "something");
+test("with create new file option disabled on an existing file - sync", () => {
+  mkdirSync("/tmp/touch-test-dir", { recursive: true });
+  writeFileSync("/tmp/touch-test-dir/touch-test-file", "something");
 
-    t.true(
-      touchSync("/tmp/touch-test-dir/touch-test-file", {
-        create: false,
-        now: new Date(1000),
-      }),
-    );
+  assert.strictEqual(
+    touchSync("/tmp/touch-test-dir/touch-test-file", {
+      create: false,
+      now: new Date(1000),
+    }),
+    true,
+  );
 
-    t.is(statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs, 1000);
-  },
-);
+  assert.strictEqual(
+    statSync("/tmp/touch-test-dir/touch-test-file").mtimeMs,
+    1000,
+  );
+});
 
 function safeRmdirSync(path: string): void {
   try {

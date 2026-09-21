@@ -1,4 +1,5 @@
-import test from "ava";
+import assert from "node:assert/strict";
+import test, { afterEach, beforeEach } from "node:test";
 import {
   existsSync,
   mkdirSync,
@@ -16,14 +17,14 @@ import {
   scanDirSync,
 } from "./scan.js";
 
-test.beforeEach(() => {
+beforeEach(() => {
   mkdirSync("/tmp/scan-test-dir/a/1", { recursive: true });
   mkdirSync("/tmp/scan-test-dir/b/2", { recursive: true });
   writeFileSync("/tmp/scan-test-dir/b/2/file1", "something");
   symlinkSync("./file1", "/tmp/scan-test-dir/b/2/file2");
 });
 
-test.afterEach(() => {
+afterEach(() => {
   safeRmdirSync("/tmp/scan-test-dir/a/1");
   safeRmdirSync("/tmp/scan-test-dir/a");
   safeUnlinkSync("/tmp/scan-test-dir/b/2/file1");
@@ -33,31 +34,31 @@ test.afterEach(() => {
   safeRmdirSync("/tmp/scan-test-dir");
 });
 
-test("scan of a missing dir - async", async (t) => {
-  await t.notThrowsAsync(async () => {
+test("scan of a missing dir - async", async () => {
+  await assert.doesNotReject(async () => {
     await scanDir("/this/directory/does/not/exist");
   });
 });
 
-test("scan of a missing dir - sync", (t) => {
-  t.notThrows(() => {
+test("scan of a missing dir - sync", () => {
+  assert.doesNotThrow(() => {
     scanDirSync("/this/directory/does/not/exist");
   });
 });
 
-test("scan skips over deleted entries - async", async (t) => {
+test("scan skips over deleted entries - async", async () => {
   const it = scanDir("/tmp/scan-test-dir")[Symbol.asyncIterator]();
 
   const a = await it.next();
-  t.false(a.done);
-  t.is(a.value.path, "a");
+  assert.strictEqual(a.done, false);
+  assert.strictEqual(a.value.path, "a");
 
   rmdirSync("/tmp/scan-test-dir/a/1");
   rmdirSync("/tmp/scan-test-dir/a");
 
   const b = await it.next();
-  t.false(b.done);
-  t.is(b.value.path, "b");
+  assert.strictEqual(b.done, false);
+  assert.strictEqual(b.value.path, "b");
 
   unlinkSync("/tmp/scan-test-dir/b/2/file1");
   unlinkSync("/tmp/scan-test-dir/b/2/file2");
@@ -65,22 +66,22 @@ test("scan skips over deleted entries - async", async (t) => {
   rmdirSync("/tmp/scan-test-dir/b");
 
   const c = await it.next();
-  t.is(c.done, true);
+  assert.strictEqual(c.done, true);
 });
 
-test("scan skips over deleted entries - sync", (t) => {
+test("scan skips over deleted entries - sync", () => {
   const it = scanDirSync("/tmp/scan-test-dir")[Symbol.iterator]();
 
   const a = it.next();
-  t.false(a.done);
-  t.is(a.value.path, "a");
+  assert.strictEqual(a.done, false);
+  assert.strictEqual(a.value.path, "a");
 
   rmdirSync("/tmp/scan-test-dir/a/1");
   rmdirSync("/tmp/scan-test-dir/a");
 
   const b = it.next();
-  t.false(b.done);
-  t.is(b.value.path, "b");
+  assert.strictEqual(b.done, false);
+  assert.strictEqual(b.value.path, "b");
 
   unlinkSync("/tmp/scan-test-dir/b/2/file1");
   unlinkSync("/tmp/scan-test-dir/b/2/file2");
@@ -88,71 +89,71 @@ test("scan skips over deleted entries - sync", (t) => {
   rmdirSync("/tmp/scan-test-dir/b");
 
   const c = it.next();
-  t.is(c.done, true);
+  assert.strictEqual(c.done, true);
 });
 
-test("scan of an existing dir - async", async (t) => {
+test("scan of an existing dir - async", async () => {
   const entries = [];
   for await (const entry of scanDir("/tmp/scan-test-dir")) {
     entries.push(entry);
   }
 
-  t.deepEqual(
+  assert.deepStrictEqual(
     entries.map(({ path }) => path),
     ["a", "a/1", "b", "b/2", "b/2/file1", "b/2/file2"],
   );
-  t.true(entries[0].stats.isDirectory());
-  t.true(entries[1].stats.isDirectory());
-  t.true(entries[2].stats.isDirectory());
-  t.true(entries[3].stats.isDirectory());
-  t.true(entries[4].stats.isFile());
-  t.true(entries[5].stats.isSymbolicLink());
+  assert.strictEqual(entries[0].stats.isDirectory(), true);
+  assert.strictEqual(entries[1].stats.isDirectory(), true);
+  assert.strictEqual(entries[2].stats.isDirectory(), true);
+  assert.strictEqual(entries[3].stats.isDirectory(), true);
+  assert.strictEqual(entries[4].stats.isFile(), true);
+  assert.strictEqual(entries[5].stats.isSymbolicLink(), true);
 });
 
-test("scan of an existing dir - sync", (t) => {
+test("scan of an existing dir - sync", () => {
   const entries = [];
   for (const entry of scanDirSync("/tmp/scan-test-dir")) {
     entries.push(entry);
   }
 
-  t.deepEqual(
+  assert.deepStrictEqual(
     entries.map(({ path }) => path),
     ["a", "a/1", "b", "b/2", "b/2/file1", "b/2/file2"],
   );
-  t.true(entries[0].stats.isDirectory());
-  t.true(entries[1].stats.isDirectory());
-  t.true(entries[2].stats.isDirectory());
-  t.true(entries[3].stats.isDirectory());
-  t.true(entries[4].stats.isFile());
-  t.true(entries[5].stats.isSymbolicLink());
+  assert.strictEqual(entries[0].stats.isDirectory(), true);
+  assert.strictEqual(entries[1].stats.isDirectory(), true);
+  assert.strictEqual(entries[2].stats.isDirectory(), true);
+  assert.strictEqual(entries[3].stats.isDirectory(), true);
+  assert.strictEqual(entries[4].stats.isFile(), true);
+  assert.strictEqual(entries[5].stats.isSymbolicLink(), true);
 });
 
-test("empty dir - async", async (t) => {
+test("empty dir - async", async () => {
   await emptyDir("/tmp/scan-test-dir");
 
-  t.true(existsSync("/tmp/scan-test-dir"));
-  t.false(existsSync("/tmp/scan-test-dir/a"));
-  t.false(existsSync("/tmp/scan-test-dir/b"));
+  assert.strictEqual(existsSync("/tmp/scan-test-dir"), true);
+  assert.strictEqual(existsSync("/tmp/scan-test-dir/a"), false);
+  assert.strictEqual(existsSync("/tmp/scan-test-dir/b"), false);
 });
 
-test("empty dir - sync", (t) => {
+test("empty dir - sync", () => {
   emptyDirSync("/tmp/scan-test-dir");
 
-  t.true(existsSync("/tmp/scan-test-dir"));
-  t.false(existsSync("/tmp/scan-test-dir/a"));
-  t.false(existsSync("/tmp/scan-test-dir/b"));
+  assert.strictEqual(existsSync("/tmp/scan-test-dir"), true);
+  assert.strictEqual(existsSync("/tmp/scan-test-dir/a"), false);
+  assert.strictEqual(existsSync("/tmp/scan-test-dir/b"), false);
 });
 
-test("remove dir - async", async (t) => {
+test("remove dir - async", async () => {
   await removeDir("/tmp/scan-test-dir");
 
-  t.false(existsSync("/tmp/scan-test-dir"));
+  assert.strictEqual(existsSync("/tmp/scan-test-dir"), false);
 });
 
-test("remove dir - sync", (t) => {
+test("remove dir - sync", () => {
   removeDirSync("/tmp/scan-test-dir");
 
-  t.false(existsSync("/tmp/scan-test-dir"));
+  assert.strictEqual(existsSync("/tmp/scan-test-dir"), false);
 });
 
 function safeRmdirSync(path: string): void {

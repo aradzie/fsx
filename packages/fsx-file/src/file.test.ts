@@ -1,29 +1,30 @@
+import assert from "node:assert/strict";
 import type { Readable } from "node:stream";
-import test from "ava";
+import test, { afterEach, beforeEach } from "node:test";
 import { Dir, File } from "./file.js";
 
 const root = new Dir("/tmp/test-fs-file");
 const dir = new Dir("/tmp/test-fs-file/a/b/c");
 const file = new File("/tmp/test-fs-file/a/b/c/file");
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await root.remove();
   await root.create();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   await root.remove();
 });
 
-test.serial("handle missing files or directories", async (t) => {
-  await t.throwsAsync(async () => dir.readable());
-  await t.throwsAsync(async () => dir.writable());
+test("handle missing files or directories", async () => {
+  await assert.rejects(async () => dir.readable());
+  await assert.rejects(async () => dir.writable());
 
-  await t.throwsAsync(async () => file.readable());
-  await t.throwsAsync(async () => file.writable());
+  await assert.rejects(async () => file.readable());
+  await assert.rejects(async () => file.writable());
 });
 
-test.serial("read and write files and directories", async (t) => {
+test("read and write files and directories", async () => {
   // Act.
 
   await file.write(Buffer.from("one\n"));
@@ -32,42 +33,45 @@ test.serial("read and write files and directories", async (t) => {
 
   // Assert.
 
-  t.is(String(await file.read()), "one\ntwo\nthree\n");
-  t.is(await readAll(await file.readStream()), "one\ntwo\nthree\n");
+  assert.strictEqual(String(await file.read()), "one\ntwo\nthree\n");
+  assert.strictEqual(
+    await readAll(await file.readStream()),
+    "one\ntwo\nthree\n",
+  );
 
-  t.true(await dir.exists());
-  t.true(await dir.readable());
-  t.true(await dir.writable());
+  assert.strictEqual(await dir.exists(), true);
+  assert.strictEqual(await dir.readable(), true);
+  assert.strictEqual(await dir.writable(), true);
 
-  t.true(await file.exists());
-  t.true(await file.readable());
-  t.true(await file.writable());
+  assert.strictEqual(await file.exists(), true);
+  assert.strictEqual(await file.readable(), true);
+  assert.strictEqual(await file.writable(), true);
 });
 
-test.serial("touch a missing file", async (t) => {
+test("touch a missing file", async () => {
   // Act.
 
-  t.true(await file.touch());
+  assert.strictEqual(await file.touch(), true);
 
   // Assert.
 
-  t.true(await root.exists());
-  t.true(await file.exists());
-  t.is(await file.read({ encoding: "utf8" }), "");
+  assert.strictEqual(await root.exists(), true);
+  assert.strictEqual(await file.exists(), true);
+  assert.strictEqual(await file.read({ encoding: "utf8" }), "");
 });
 
-test.serial("touch a missing file and honor no-create", async (t) => {
+test("touch a missing file and honor no-create", async () => {
   // Act.
 
-  t.false(await file.touch({ create: false }));
+  assert.strictEqual(await file.touch({ create: false }), false);
 
   // Assert.
 
-  t.true(await root.exists());
-  t.false(await file.exists());
+  assert.strictEqual(await root.exists(), true);
+  assert.strictEqual(await file.exists(), false);
 });
 
-test.serial("touch an existing file", async (t) => {
+test("touch an existing file", async () => {
   // Arrange.
 
   await file.write("something", { encoding: "utf8" });
@@ -76,21 +80,21 @@ test.serial("touch an existing file", async (t) => {
 
   // Act.
 
-  t.true(await file.touch());
+  assert.strictEqual(await file.touch(), true);
   const stat1 = await file.stat();
 
   // Assert.
 
-  t.true(await root.exists());
-  t.true(await file.exists());
-  t.is(await file.read({ encoding: "utf8" }), "something");
-  t.deepEqual(stat0.atime, new Date(0));
-  t.deepEqual(stat0.mtime, new Date(0));
-  t.notDeepEqual(stat1.atime, new Date(0));
-  t.notDeepEqual(stat1.mtime, new Date(0));
+  assert.strictEqual(await root.exists(), true);
+  assert.strictEqual(await file.exists(), true);
+  assert.strictEqual(await file.read({ encoding: "utf8" }), "something");
+  assert.deepStrictEqual(stat0.atime, new Date(0));
+  assert.deepStrictEqual(stat0.mtime, new Date(0));
+  assert.notDeepStrictEqual(stat1.atime, new Date(0));
+  assert.notDeepStrictEqual(stat1.mtime, new Date(0));
 });
 
-test.serial("touch an existing file and honor no-create", async (t) => {
+test("touch an existing file and honor no-create", async () => {
   // Arrange.
 
   await file.write("something", { encoding: "utf8" });
@@ -99,18 +103,18 @@ test.serial("touch an existing file and honor no-create", async (t) => {
 
   // Act.
 
-  t.true(await file.touch({ create: false }));
+  assert.strictEqual(await file.touch({ create: false }), true);
   const stat1 = await file.stat();
 
   // Assert.
 
-  t.true(await root.exists());
-  t.true(await file.exists());
-  t.is(await file.read({ encoding: "utf8" }), "something");
-  t.deepEqual(stat0.atime, new Date(0));
-  t.deepEqual(stat0.mtime, new Date(0));
-  t.notDeepEqual(stat1.atime, new Date(0));
-  t.notDeepEqual(stat1.mtime, new Date(0));
+  assert.strictEqual(await root.exists(), true);
+  assert.strictEqual(await file.exists(), true);
+  assert.strictEqual(await file.read({ encoding: "utf8" }), "something");
+  assert.deepStrictEqual(stat0.atime, new Date(0));
+  assert.deepStrictEqual(stat0.mtime, new Date(0));
+  assert.notDeepStrictEqual(stat1.atime, new Date(0));
+  assert.notDeepStrictEqual(stat1.mtime, new Date(0));
 });
 
 async function readAll(readable: Readable): Promise<string> {

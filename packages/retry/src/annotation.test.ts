@@ -1,8 +1,9 @@
-import test from "ava";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { retry } from "./annotation.js";
 import { fixedDelay } from "./delayer.js";
 
-test("return value from decorated method", async (t) => {
+test("return value from decorated method", async () => {
   // Arrange.
 
   class Example {
@@ -26,11 +27,11 @@ test("return value from decorated method", async (t) => {
 
   // Assert.
 
-  t.is(await example.run("xyz"), "xyz 3");
-  t.is(example.count, 3);
+  assert.strictEqual(await example.run("xyz"), "xyz 3");
+  assert.strictEqual(example.count, 3);
 });
 
-test("rethrow last error from decorated method", async (t) => {
+test("rethrow last error from decorated method", async () => {
   // Arrange.
 
   class Example {
@@ -52,6 +53,6 @@ test("rethrow last error from decorated method", async (t) => {
 
   // Assert.
 
-  await t.throwsAsync(() => example.run(), { message: "try again 3" });
-  t.is(example.count, 3);
+  await assert.rejects(() => example.run(), { message: "try again 3" });
+  assert.strictEqual(example.count, 3);
 });

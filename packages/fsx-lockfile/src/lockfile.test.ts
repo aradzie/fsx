@@ -1,22 +1,23 @@
+import assert from "node:assert/strict";
+import test, { afterEach, beforeEach } from "node:test";
 import { Dir, File } from "@sosimple/fsx-file";
 import type { RetryOptions } from "@sosimple/retry";
 import { fixedDelay } from "@sosimple/retry";
-import test from "ava";
 import { LockFile, LockFileError, LockFileState } from "./lockfile.js";
 
 const root = new Dir("/tmp/test-fs-lockfile");
 const file = new File("/tmp/test-fs-lockfile/file");
 const lock = new File("/tmp/test-fs-lockfile/file.lock");
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await root.remove();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   await root.remove();
 });
 
-test.serial("lock unlock lock", async (t) => {
+test("lock unlock lock", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -26,14 +27,14 @@ test.serial("lock unlock lock", async (t) => {
 
   // Assert.
 
-  await t.notThrowsAsync(async () => {
+  await assert.doesNotReject(async () => {
     await (await LockFile.lock(file, options)).rollback();
     await (await LockFile.lock(file, options)).commit();
     await (await LockFile.lock(file, options)).rollback();
   });
 });
 
-test.serial("fail to lock", async (t) => {
+test("fail to lock", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -45,46 +46,41 @@ test.serial("fail to lock", async (t) => {
   // Assert.
 
   try {
-    await t.throwsAsync<LockFileError>(
-      async () => {
-        await LockFile.lock(file, options);
-      },
-      {
-        instanceOf: LockFileError,
-      },
-    );
+    await assert.rejects(async () => {
+      await LockFile.lock(file, options);
+    }, LockFileError);
   } finally {
     await lockFile.rollback();
   }
 });
 
-test.serial("detect unlocked status", async (t) => {
+test("detect unlocked status", async () => {
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
 });
 
-test.serial("detect locked status", async (t) => {
+test("detect locked status", async () => {
   // Arrange.
 
   await lock.touch();
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "locked");
+  assert.strictEqual(await LockFile.isLocked(file), "locked");
 });
 
-test.serial("detect stale status", async (t) => {
+test("detect stale status", async () => {
   // Arrange.
 
   await lock.touch({ now: new Date(0) });
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "stale");
+  assert.strictEqual(await LockFile.isLocked(file), "stale");
 });
 
-test.serial("delete stale lock file", async (t) => {
+test("delete stale lock file", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -100,12 +96,12 @@ test.serial("delete stale lock file", async (t) => {
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.false(await file.exists());
-  t.false(await lock.exists());
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.exists(), false);
+  assert.strictEqual(await lock.exists(), false);
 });
 
-test.serial("unlock", async (t) => {
+test("unlock", async () => {
   // Arrange.
 
   await lock.touch();
@@ -116,12 +112,12 @@ test.serial("unlock", async (t) => {
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.false(await file.exists());
-  t.false(await lock.exists());
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.exists(), false);
+  assert.strictEqual(await lock.exists(), false);
 });
 
-test.serial("commit for missing file", async (t) => {
+test("commit for missing file", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -137,14 +133,14 @@ test.serial("commit for missing file", async (t) => {
 
   // Assert.
 
-  t.is(lockFile.state, LockFileState.COMMITTED);
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.true(await file.exists());
-  t.false(await lock.exists());
-  t.is(await file.read("utf8"), "updated");
+  assert.strictEqual(lockFile.state, LockFileState.COMMITTED);
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.exists(), true);
+  assert.strictEqual(await lock.exists(), false);
+  assert.strictEqual(await file.read("utf8"), "updated");
 });
 
-test.serial("commit for existing file", async (t) => {
+test("commit for existing file", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -162,14 +158,14 @@ test.serial("commit for existing file", async (t) => {
 
   // Assert.
 
-  t.is(lockFile.state, LockFileState.COMMITTED);
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.true(await file.exists());
-  t.false(await lock.exists());
-  t.is(await file.read("utf8"), "updated");
+  assert.strictEqual(lockFile.state, LockFileState.COMMITTED);
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.exists(), true);
+  assert.strictEqual(await lock.exists(), false);
+  assert.strictEqual(await file.read("utf8"), "updated");
 });
 
-test.serial("rollback for missing file", async (t) => {
+test("rollback for missing file", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -185,13 +181,13 @@ test.serial("rollback for missing file", async (t) => {
 
   // Assert.
 
-  t.is(lockFile.state, LockFileState.ABORTED);
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.false(await file.exists());
-  t.false(await lock.exists());
+  assert.strictEqual(lockFile.state, LockFileState.ABORTED);
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.exists(), false);
+  assert.strictEqual(await lock.exists(), false);
 });
 
-test.serial("rollback for existing file", async (t) => {
+test("rollback for existing file", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -209,14 +205,14 @@ test.serial("rollback for existing file", async (t) => {
 
   // Assert.
 
-  t.is(lockFile.state, LockFileState.ABORTED);
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.true(await file.exists());
-  t.false(await lock.exists());
-  t.is(await file.read("utf8"), "original");
+  assert.strictEqual(lockFile.state, LockFileState.ABORTED);
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.exists(), true);
+  assert.strictEqual(await lock.exists(), false);
+  assert.strictEqual(await file.read("utf8"), "original");
 });
 
-test.serial("check state", async (t) => {
+test("check state", async () => {
   // Arrange.
 
   const options: RetryOptions = {
@@ -228,21 +224,21 @@ test.serial("check state", async (t) => {
 
   // Assert.
 
-  await t.throwsAsync(async () => {
+  await assert.rejects(async () => {
     await lockFile.writeFile("something");
   });
-  await t.throwsAsync(async () => {
+  await assert.rejects(async () => {
     await lockFile.appendFile("something");
   });
-  await t.throwsAsync(async () => {
+  await assert.rejects(async () => {
     await lockFile.commit();
   });
-  await t.throwsAsync(async () => {
+  await assert.rejects(async () => {
     await lockFile.rollback();
   });
 });
 
-test.serial("withLock automatically commits on success", async (t) => {
+test("withLock automatically commits on success", async () => {
   // Act.
 
   const options: RetryOptions = {
@@ -256,11 +252,11 @@ test.serial("withLock automatically commits on success", async (t) => {
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.is(await file.read("utf8"), "something");
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.read("utf8"), "something");
 });
 
-test.serial("withLock automatically rollbacks on error", async (t) => {
+test("withLock automatically rollbacks on error", async () => {
   // Arrange.
 
   await file.write("something");
@@ -272,7 +268,7 @@ test.serial("withLock automatically rollbacks on error", async (t) => {
     delayer: fixedDelay(1),
   };
 
-  await t.throwsAsync(async () => {
+  await assert.rejects(async () => {
     await LockFile.withLock(file, options, async (lock) => {
       await lock.writeFile("fixed");
       throw new Error("whoops");
@@ -281,11 +277,11 @@ test.serial("withLock automatically rollbacks on error", async (t) => {
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.is(await file.read("utf8"), "something");
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.read("utf8"), "something");
 });
 
-test.serial("withLock honors commit", async (t) => {
+test("withLock honors commit", async () => {
   // Arrange.
 
   await file.write("something");
@@ -304,11 +300,11 @@ test.serial("withLock honors commit", async (t) => {
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.is(await file.read("utf8"), "fixed");
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.read("utf8"), "fixed");
 });
 
-test.serial("withLock honors rollback", async (t) => {
+test("withLock honors rollback", async () => {
   // Arrange.
 
   await file.write("something");
@@ -327,6 +323,6 @@ test.serial("withLock honors rollback", async (t) => {
 
   // Assert.
 
-  t.is(await LockFile.isLocked(file), "unlocked");
-  t.is(await file.read("utf8"), "something");
+  assert.strictEqual(await LockFile.isLocked(file), "unlocked");
+  assert.strictEqual(await file.read("utf8"), "something");
 });

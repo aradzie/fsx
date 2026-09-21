@@ -1,4 +1,5 @@
-import test from "ava";
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   exponentialDelay,
   fixedDelay,
@@ -6,33 +7,33 @@ import {
   randomDelay,
 } from "./delayer.js";
 
-test("fixedDelay", (t) => {
+test("fixedDelay", () => {
   const delayer = fixedDelay(123);
-  t.is(delayer.nextDelay(1), 123);
-  t.is(delayer.nextDelay(2), 123);
-  t.is(delayer.nextDelay(3), 123);
+  assert.strictEqual(delayer.nextDelay(1), 123);
+  assert.strictEqual(delayer.nextDelay(2), 123);
+  assert.strictEqual(delayer.nextDelay(3), 123);
 });
 
-test("incrementalDelay", (t) => {
+test("incrementalDelay", () => {
   const delayer = incrementalDelay(123);
-  t.is(delayer.nextDelay(1), 123);
-  t.is(delayer.nextDelay(2), 246);
-  t.is(delayer.nextDelay(3), 369);
+  assert.strictEqual(delayer.nextDelay(1), 123);
+  assert.strictEqual(delayer.nextDelay(2), 246);
+  assert.strictEqual(delayer.nextDelay(3), 369);
 });
 
-test("exponentialDelay", (t) => {
+test("exponentialDelay", () => {
   const delayer = exponentialDelay(10);
-  t.is(delayer.nextDelay(1), 20);
-  t.is(delayer.nextDelay(2), 40);
-  t.is(delayer.nextDelay(3), 80);
+  assert.strictEqual(delayer.nextDelay(1), 20);
+  assert.strictEqual(delayer.nextDelay(2), 40);
+  assert.strictEqual(delayer.nextDelay(3), 80);
 });
 
-test("randomDelay", (t) => {
+test("randomDelay", () => {
   const delayer = randomDelay(3, 7);
   for (let i = 0; i < 100; i++) {
     const value = delayer.nextDelay(i + 1);
-    t.true(Number.isInteger(value));
-    t.true(value >= 3);
-    t.true(value <= 7);
+    assert.strictEqual(Number.isInteger(value), true);
+    assert.strictEqual(value >= 3, true);
+    assert.strictEqual(value <= 7, true);
   }
 });
