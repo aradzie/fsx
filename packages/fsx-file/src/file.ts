@@ -15,6 +15,7 @@ import {
   mkdir,
   readFile,
   removeDir,
+  rmdir,
   stat,
   touch,
   unlink,
@@ -32,26 +33,26 @@ import type {
 } from "./types.js";
 
 abstract class Entry {
-  public readonly name: string;
+  public readonly path: string;
 
   protected constructor(path: string) {
-    this.name = normalize(resolve(path));
+    this.path = normalize(resolve(path));
   }
 
   async stat(): Promise<Stats> {
-    return stat(this.name);
+    return stat(this.path);
   }
 
   async utimes(
     atime: string | number | Date,
     mtime: string | number | Date,
   ): Promise<void> {
-    return utimes(this.name, atime, mtime);
+    return utimes(this.path, atime, mtime);
   }
 
   async exists(): Promise<boolean> {
     try {
-      await access(this.name, constants.F_OK);
+      await access(this.path, constants.F_OK);
       return true;
     } catch (err: any) {
       if (err.code === "ENOENT") {
@@ -64,7 +65,7 @@ abstract class Entry {
 
   async readable(): Promise<boolean> {
     try {
-      await access(this.name, constants.R_OK);
+      await access(this.path, constants.R_OK);
       return true;
     } catch (err: any) {
       if (err.code === "EACCES") {
@@ -77,7 +78,7 @@ abstract class Entry {
 
   async writable(): Promise<boolean> {
     try {
-      await access(this.name, constants.W_OK);
+      await access(this.path, constants.W_OK);
       return true;
     } catch (err: any) {
       if (err.code === "EACCES") {
@@ -88,21 +89,10 @@ abstract class Entry {
     }
   }
 
-  async delete(): Promise<boolean> {
-    try {
-      await unlink(this.name);
-      return true;
-    } catch (err: any) {
-      if (err.code === "ENOENT") {
-        return false;
-      } else {
-        throw err;
-      }
-    }
-  }
+  abstract delete(): Promise<boolean>;
 
   toString(): string {
-    return this.name;
+    return this.path;
   }
 }
 
@@ -112,15 +102,31 @@ export class Dir extends Entry {
   }
 
   async create(recursive = true): Promise<void> {
-    await mkdir(this.name, { recursive });
+    await mkdir(this.path, { recursive });
+  }
+
+  /**
+   * Deletes an empty directory, returning false if it does not exist.
+   * Throws if the directory is not empty; use remove() for recursive deletion.
+   */
+  override async delete(): Promise<boolean> {
+    try {
+      await rmdir(this.path);
+      return true;
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
+        return false;
+      }
+      throw err;
+    }
   }
 
   async empty(): Promise<void> {
-    await emptyDir(this.name);
+    await emptyDir(this.path);
   }
 
   async remove(): Promise<void> {
-    await removeDir(this.name);
+    await removeDir(this.path);
   }
 
   get [Symbol.toStringTag](): string {
@@ -142,35 +148,58 @@ export class File extends Entry {
   }
 
   dir(): Dir {
-    return new Dir(dirname(this.name));
+    return new Dir(dirname(this.path));
+  }
+
+  /**
+   * Deletes the file, returning false if it does not exist.
+   */
+  override async delete(): Promise<boolean> {
+    try {
+      await unlink(this.path);
+      return true;
+    } catch (err: any) {
+      if (err.code === "ENOENT") {
+        return false;
+      }
+      throw err;
+    }
   }
 
   readStream(options?: ReadOptions | Encoding): ReadStream {
-    return createReadStream(this.name, options);
+    if (options != null && typeof options === "object") {
+      const { flag, ...rest } = options;
+      return createReadStream(this.path, { ...rest, flags: flag });
+    }
+    return createReadStream(this.path, options);
   }
 
   writeStream(options?: WriteOptions | Encoding): WriteStream {
-    return createWriteStream(this.name, options);
+    if (options != null && typeof options === "object") {
+      const { flag, ...rest } = options;
+      return createWriteStream(this.path, { ...rest, flags: flag });
+    }
+    return createWriteStream(this.path, options);
   }
 
   open(
     flags: string | number,
     mode?: string | number | null,
   ): Promise<FileHandle> {
-    return FileHandle.open(this.name, flags, mode);
+    return FileHandle.open(this.path, flags, mode);
   }
 
   read(): Promise<Buffer>;
   read(options: Encoding): Promise<string>;
   read(options?: ReadOptions | Encoding): Promise<Buffer | string>;
   read(options?: ReadOptions | Encoding): Promise<Buffer | string> {
-    return readFile(this.name, options);
+    return readFile(this.path, options);
   }
 
   async write(data: any, options?: WriteOptions | Encoding): Promise<boolean> {
     await this.dir().create();
     try {
-      await writeFile(this.name, data, options);
+      await writeFile(this.path, data, options);
       return true;
     } catch (err: any) {
       if (err.code === "EEXIST") {
@@ -187,7 +216,7 @@ export class File extends Entry {
   ): Promise<boolean> {
     await this.dir().create();
     try {
-      await appendFile(this.name, data, options);
+      await appendFile(this.path, data, options);
       return true;
     } catch (err: any) {
       if (err.code === "EEXIST") {
@@ -208,22 +237,24 @@ export class File extends Entry {
     return JSON.parse(String(await this.read(options)), reviver);
   }
 
+  /**
+   * Writes JSON, returning false if an exclusive write finds an existing file.
+   */
   async writeJson(
     data: any,
     options?: WriteJsonOptions | Encoding,
     replacer?: (key: string, value: any) => any,
     space?: string | number,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (options != null && typeof options === "object") {
       replacer = replacer ?? options.replacer;
       space = space ?? options.space;
     }
-    await this.write(JSON.stringify(data, replacer, space), options);
+    return this.write(JSON.stringify(data, replacer, space), options);
   }
 
   async touch(options?: TouchOptions): Promise<boolean> {
-    await this.dir().create();
-    return await touch(this.name, options);
+    return touch(this.path, options);
   }
 
   get [Symbol.toStringTag](): string {

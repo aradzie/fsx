@@ -23,7 +23,7 @@ test("read from file", async () => {
 
   // Act.
 
-  const handle = await FileHandle.open(file.name, "r");
+  const handle = await FileHandle.open(file.path, "r");
   const read = await handle.readFile("utf8");
   await handle.close();
 
@@ -35,7 +35,7 @@ test("read from file", async () => {
 test("write to file", async () => {
   // Act.
 
-  const handle = await FileHandle.open(file.name, "w");
+  const handle = await FileHandle.open(file.path, "w");
   await handle.writeFile("uno\n");
   await handle.writeFile("due\n");
   await handle.writeFile("tre\n");
@@ -49,7 +49,7 @@ test("write to file", async () => {
 test("append to file", async () => {
   // Act.
 
-  const handle = await FileHandle.open(file.name, "w");
+  const handle = await FileHandle.open(file.path, "w");
   await handle.writeFile("uno\n");
   await handle.appendFile("due\n");
   await handle.appendFile("tre\n");
@@ -69,7 +69,7 @@ test("write then append then read from file", async () => {
 
   // Act.
 
-  const handle = await FileHandle.open(file.name, "w+");
+  const handle = await FileHandle.open(file.path, "w+");
   await handle.writeFile(a);
   await handle.appendFile(b);
   await handle.appendFile(c);

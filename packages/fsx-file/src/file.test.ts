@@ -1,19 +1,24 @@
 import assert from "node:assert/strict";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Readable } from "node:stream";
+import { finished } from "node:stream/promises";
 import test, { afterEach, beforeEach } from "node:test";
+import { chmodSync, mkdtempSync, rmSync } from "@sosimple/fsx";
 import { Dir, File } from "./file.js";
 
-const root = new Dir("/tmp/test-fs-file");
-const dir = new Dir("/tmp/test-fs-file/a/b/c");
-const file = new File("/tmp/test-fs-file/a/b/c/file");
+let root: Dir;
+let dir: Dir;
+let file: File;
 
 beforeEach(async () => {
-  await root.remove();
-  await root.create();
+  root = new Dir(mkdtempSync(join(tmpdir(), "fsx-file-")));
+  dir = new Dir(join(root.path, "a", "b", "c"));
+  file = new File(join(dir.path, "file"));
 });
 
 afterEach(async () => {
-  await root.remove();
+  rmSync(root.path, { recursive: true, force: true });
 });
 
 test("handle missing files or directories", async () => {
@@ -69,6 +74,8 @@ test("touch a missing file and honor no-create", async () => {
 
   assert.strictEqual(await root.exists(), true);
   assert.strictEqual(await file.exists(), false);
+  assert.strictEqual(await dir.exists(), false);
+  assert.strictEqual(await new Dir(join(root.path, "a")).exists(), false);
 });
 
 test("touch an existing file", async () => {
@@ -118,23 +125,100 @@ test("touch an existing file and honor no-create", async () => {
 });
 
 async function readAll(readable: Readable): Promise<string> {
-  const enableExperimental = false;
-  if (enableExperimental) {
-    const result = [];
-    for await (const chunk of readable) {
-      result.push(chunk);
-    }
-    return result.join("");
-  } else {
-    return new Promise<string>((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      readable.on("data", (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
-      readable.on("end", () => {
-        resolve(String(Buffer.concat(chunks)));
-      });
-      readable.on("error", reject);
-    });
+  const chunks: Buffer[] = [];
+  for await (const chunk of readable) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
+  return Buffer.concat(chunks).toString();
 }
+
+test("write streams honor append flags", async () => {
+  await file.write("old");
+  const stream = file.writeStream({ flag: "a", encoding: "utf8" });
+  const done = finished(stream);
+  stream.end("new");
+  await done;
+  assert.equal(await file.read("utf8"), "oldnew");
+});
+
+for (const flag of ["wx", "ax"] as const) {
+  test(`write streams honor exclusive flag ${flag}`, async () => {
+    await file.write("keep");
+    const stream = file.writeStream({ flag });
+    const rejected = assert.rejects(finished(stream), { code: "EEXIST" });
+    stream.end("replacement");
+    await rejected;
+    assert.equal(await file.read("utf8"), "keep");
+    const fresh = new File(join(dir.path, "fresh"));
+    const created = fresh.writeStream({ flag });
+    const done = finished(created);
+    created.end("created");
+    await done;
+    assert.equal(await fresh.read("utf8"), "created");
+  });
+}
+
+test("stream encoding shorthand still works", async () => {
+  await dir.create();
+  const stream = file.writeStream("hex");
+  const done = finished(stream);
+  stream.end("616263");
+  await done;
+  assert.equal(await readAll(file.readStream("utf8")), "abc");
+});
+
+test("read streams honor read/write flags", async (t) => {
+  if (process.platform === "win32" || process.getuid?.() === 0) {
+    t.skip("Requires POSIX permissions and an unprivileged user");
+    return;
+  }
+  await file.write("readable");
+  chmodSync(file.path, 0o444);
+  try {
+    assert.equal(await readAll(file.readStream({ flag: "r" })), "readable");
+    await assert.rejects(readAll(file.readStream({ flag: "r+" })), {
+      code: "EACCES",
+    });
+  } finally {
+    chmodSync(file.path, 0o600);
+  }
+});
+
+test("writeJson reports successful and rejected exclusive writes", async () => {
+  assert.equal(
+    await file.writeJson({ value: 1 }, { flag: "wx", space: 2 }),
+    true,
+  );
+  assert.equal(await file.read("utf8"), '{\n  "value": 1\n}');
+  assert.equal(await file.writeJson({ value: 2 }, { flag: "wx" }), false);
+  assert.deepEqual(await file.readJson(), { value: 1 });
+  assert.equal(await file.writeJson({ value: 3 }), true);
+  assert.deepEqual(await file.readJson(), { value: 3 });
+});
+
+test("Dir.delete removes empty directories and reports missing ones", async () => {
+  assert.equal(await dir.delete(), false);
+  await dir.create();
+  assert.equal(await dir.delete(), true);
+  assert.equal(await dir.exists(), false);
+  assert.equal(await dir.delete(), false);
+});
+
+test("Dir.delete preserves nonempty directories", async () => {
+  await file.write("keep");
+  await assert.rejects(
+    dir.delete(),
+    (err: NodeJS.ErrnoException) =>
+      err.code === "ENOTEMPTY" || err.code === "EEXIST",
+  );
+  assert.equal(await file.read("utf8"), "keep");
+  await dir.remove();
+  assert.equal(await dir.exists(), false);
+});
+
+test("File.delete still removes files and reports missing ones", async () => {
+  await file.write("remove");
+  assert.equal(await file.delete(), true);
+  assert.equal(await file.exists(), false);
+  assert.equal(await file.delete(), false);
+});

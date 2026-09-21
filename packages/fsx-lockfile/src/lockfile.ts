@@ -141,7 +141,7 @@ export class LockFile {
   ): Promise<LockFile> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.name, opts.lockName);
+    const lock = await lockName(file.path, opts.lockName);
     const retry = new Retry(options);
     while (true) {
       const handle = await tryOpenLock(lock);
@@ -165,7 +165,7 @@ export class LockFile {
       }
     }
     throw new LockFileError({
-      path: file.name,
+      path: file.path,
       attempts: retry.attempts,
       elapsed: retry.elapsed,
     });
@@ -184,7 +184,7 @@ export class LockFile {
   ): Promise<"unlocked" | "locked" | "stale"> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.name, opts.lockName);
+    const lock = await lockName(file.path, opts.lockName);
     try {
       const { mtime } = await lock.stat();
       if (mtime < new Date(Date.now() - opts.staleAfter)) {
@@ -207,7 +207,7 @@ export class LockFile {
   ): Promise<void> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.name, opts.lockName);
+    const lock = await lockName(file.path, opts.lockName);
     await lock.delete();
   }
 
@@ -267,7 +267,7 @@ export class LockFile {
     untrack(this.lock.name);
     await this.lock.close();
     try {
-      await rename(this.lock.name, this.file.name);
+      await rename(this.lock.name, this.file.path);
     } catch (err) {
       await unlink(this.lock.name);
       throw err;
