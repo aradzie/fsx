@@ -15,9 +15,6 @@ import {
 import type { Encoding } from "./types.js";
 import { readFileHandle, toBuffer, writeFileHandle } from "./util.js";
 
-const kName = Symbol();
-const kFd = Symbol();
-
 /**
  * A `FileHandle` object is a wrapper for a numeric file descriptor.
  * Instances of `FileHandle` are distinct from numeric file descriptors in that
@@ -32,61 +29,61 @@ export class FileHandle {
     return new FileHandle(name, await open(name, flags, mode));
   }
 
-  private [kName]: string;
-  private [kFd]: number;
+  #name: string;
+  #fd: number;
 
   constructor(name: string, fd: number) {
-    this[kName] = name;
-    this[kFd] = fd;
+    this.#name = name;
+    this.#fd = fd;
   }
 
   /**
    * Gets file name.
    */
   get name(): string {
-    return this[kName];
+    return this.#name;
   }
 
   /**
    * Gets file descriptor.
    */
   get fd(): number {
-    return this[kFd];
+    return this.#fd;
   }
 
   async close(): Promise<void> {
-    return close(this[kFd]);
+    return close(this.#fd);
   }
 
   async chmod(mode: string | number): Promise<void> {
-    return fchmod(this[kFd], mode);
+    return fchmod(this.#fd, mode);
   }
 
   async chown(uid: number, gid: number): Promise<void> {
-    return fchown(this[kFd], uid, gid);
+    return fchown(this.#fd, uid, gid);
   }
 
   async stat(): Promise<Stats> {
-    return fstat(this[kFd]);
+    return fstat(this.#fd);
   }
 
   async utimes(
     atime: string | number | Date,
     mtime: string | number | Date,
   ): Promise<void> {
-    return futimes(this[kFd], atime, mtime);
+    return futimes(this.#fd, atime, mtime);
   }
 
   async sync(): Promise<void> {
-    return fsync(this[kFd]);
+    return fsync(this.#fd);
   }
 
   async datasync(): Promise<void> {
-    return fdatasync(this[kFd]);
+    return fdatasync(this.#fd);
   }
 
   async truncate(length?: number): Promise<void> {
-    return ftruncate(this[kFd], length);
+    return ftruncate(this.#fd, length);
   }
 
   /**
@@ -107,7 +104,7 @@ export class FileHandle {
     bytesRead: number;
     buffer: TBuffer;
   }> {
-    return read(this[kFd], buffer, offset, length, position);
+    return read(this.#fd, buffer, offset, length, position);
   }
 
   /**
@@ -130,7 +127,7 @@ export class FileHandle {
     bytesWritten: number;
     buffer: TBuffer;
   }> {
-    return write(this[kFd], buffer, offset, length, position);
+    return write(this.#fd, buffer, offset, length, position);
   }
 
   /**
@@ -148,7 +145,7 @@ export class FileHandle {
   async readFile(encoding: Encoding): Promise<string>;
 
   async readFile(encoding?: Encoding): Promise<Buffer | string> {
-    const buffer = await readFileHandle(this[kFd]);
+    const buffer = await readFileHandle(this.#fd);
     if (encoding) {
       return buffer.toString(encoding);
     } else {
@@ -182,7 +179,7 @@ export class FileHandle {
     data: NodeJS.ArrayBufferView | string,
     encoding?: Encoding,
   ): Promise<void> {
-    await writeFileHandle(this[kFd], toBuffer(data, encoding), false);
+    await writeFileHandle(this.#fd, toBuffer(data, encoding), false);
   }
 
   /**
@@ -209,7 +206,7 @@ export class FileHandle {
     data: NodeJS.ArrayBufferView | string,
     encoding?: Encoding,
   ): Promise<void> {
-    await writeFileHandle(this[kFd], toBuffer(data, encoding), true);
+    await writeFileHandle(this.#fd, toBuffer(data, encoding), true);
   }
 
   get [Symbol.toStringTag](): string {

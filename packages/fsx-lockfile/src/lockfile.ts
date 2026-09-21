@@ -93,8 +93,6 @@ export enum LockFileState {
   COMMITTED,
 }
 
-const kState = Symbol();
-
 /**
  * Synchronizes access to a shared file for multiple concurrent processes.
  */
@@ -213,7 +211,7 @@ export class LockFile {
     await lock.delete();
   }
 
-  private [kState] = LockFileState.LOCKED;
+  #state = LockFileState.LOCKED;
 
   constructor(
     public readonly file: File,
@@ -223,7 +221,7 @@ export class LockFile {
   }
 
   get state(): LockFileState {
-    return this[kState];
+    return this.#state;
   }
 
   /**
@@ -237,7 +235,7 @@ export class LockFile {
     data: NodeJS.ArrayBufferView | string,
     encoding?: Encoding,
   ): Promise<void> {
-    assert(this[kState] === LockFileState.LOCKED);
+    assert(this.#state === LockFileState.LOCKED);
     return this.lock.writeFile(data as any, encoding);
   }
 
@@ -251,21 +249,21 @@ export class LockFile {
     data: NodeJS.ArrayBufferView | string,
     encoding?: Encoding,
   ): Promise<void> {
-    assert(this[kState] === LockFileState.LOCKED);
+    assert(this.#state === LockFileState.LOCKED);
     return this.lock.appendFile(data as any, encoding);
   }
 
   async rollback(): Promise<void> {
-    assert(this[kState] === LockFileState.LOCKED);
-    this[kState] = LockFileState.ABORTED;
+    assert(this.#state === LockFileState.LOCKED);
+    this.#state = LockFileState.ABORTED;
     untrack(this.lock.name);
     await this.lock.close();
     await unlink(this.lock.name);
   }
 
   async commit(): Promise<void> {
-    assert(this[kState] === LockFileState.LOCKED);
-    this[kState] = LockFileState.COMMITTED;
+    assert(this.#state === LockFileState.LOCKED);
+    this.#state = LockFileState.COMMITTED;
     untrack(this.lock.name);
     await this.lock.close();
     try {
