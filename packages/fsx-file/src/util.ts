@@ -1,4 +1,4 @@
-import { fstat, read, write } from "@sosimple/fsx";
+import { fstat, ftruncate, read, write } from "@sosimple/fsx";
 import type { Encoding } from "./types.js";
 
 const chunkSize = 16384;
@@ -13,7 +13,7 @@ export async function readFileHandle(fd: number): Promise<Buffer> {
     const tmp = Buffer.alloc(chunkSize);
     const { bytesRead, buffer } = await read(fd, tmp, 0, chunkSize, position);
     if (bytesRead > 0) {
-      chunks.push(buffer.slice(0, bytesRead));
+      chunks.push(buffer.subarray(0, bytesRead));
       position += bytesRead;
     } else {
       break;
@@ -23,7 +23,7 @@ export async function readFileHandle(fd: number): Promise<Buffer> {
 }
 
 /**
- * Asynchronously writes data to a file, replacing any old contents.
+ * Asynchronously writes data to a file, appending or replacing its contents.
  */
 export async function writeFileHandle(
   fd: number,
@@ -43,9 +43,12 @@ export async function writeFileHandle(
       Math.min(chunkSize, buffer.length),
       position,
     );
-    buffer = buffer.slice(bytesWritten);
+    buffer = buffer.subarray(bytesWritten);
     remaining -= bytesWritten;
     position += bytesWritten;
+  }
+  if (!append) {
+    await ftruncate(fd, position);
   }
 }
 
@@ -58,6 +61,9 @@ export function toBuffer(
   }
   if (typeof data === "string") {
     return Buffer.from(data, encoding);
+  }
+  if (ArrayBuffer.isView(data)) {
+    return Buffer.from(data.buffer, data.byteOffset, data.byteLength);
   }
   throw new TypeError();
 }
