@@ -5,8 +5,8 @@ export interface Delayer {
   /**
    * Computes pause time for the given attempt.
    *
-   * If the retried operation succeeds then this method is not called.
-   * Otherwise it is called with the increasing retry number starting from one.
+   * If the retried operation succeeds, then this method is not called.
+   * Otherwise, it is called with an increasing retry number starting from one.
    *
    * @param attempt An increasing retry number starting from one.
    */
@@ -72,7 +72,8 @@ export function randomDelay(min: number, max: number): Delayer {
 }
 
 /**
- * Combined multiple delayers into one which sums all the combined delayers.
+ * Combines multiple delayers into one that sums the delays of all combined
+ * delayers.
  * @param delayers Delayers to combine.
  * @return A combined delayer.
  */

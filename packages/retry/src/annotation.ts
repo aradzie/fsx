@@ -15,7 +15,7 @@ export interface AnnotationOptions extends RetryOptions {
 /**
  * An annotation which is applied to a function or a class method to intercept
  * its execution and call it multiple times until it succeeds.
- * It returns the return value of the wrapped function on success throws
+ * It returns the return value of the wrapped function on success, or throws
  * the last error if all retry attempts fail.
  *
  * Example:

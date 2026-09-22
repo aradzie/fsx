@@ -59,7 +59,7 @@ export interface LockFileOptions {
   /**
    * The lock file name.
    *
-   * Is a template which accepts placeholders, such as:
+   * It is a template which accepts placeholders, such as:
    *
    * - `[path]` -- The original file path.
    * - `[root]` -- `root` from `parse(path)`.
@@ -99,11 +99,11 @@ export enum LockFileState {
 export class LockFile {
   /**
    * Executes the given callback function after locking the given file.
-   * Throws [[LockFileError]] if file cannot be locked.
+   * Throws [[LockFileError]] if the file cannot be locked.
    *
    * @param name Name of the file to lock.
    * @param options Lock file options.
-   * @param callback A callback to executes once the file is locked.
+   * @param callback A callback to execute once the file is locked.
    * @return The result of the callback.
    */
   static async withLock<T>(
@@ -129,11 +129,11 @@ export class LockFile {
 
   /**
    * Attempts to lock the given file.
-   * Throws [[LockFileError]] if file cannot be locked.
+   * Throws [[LockFileError]] if the file cannot be locked.
    *
    * @param name Name of the file to lock.
    * @param options Lock file options.
-   * @return A promise which resolves with [[LockFile]] instance on success.
+   * @return A promise which resolves with a [[LockFile]] instance on success.
    */
   static async lock(
     name: File | string,
@@ -176,7 +176,7 @@ export class LockFile {
    *
    * @param name Name of the file to check.
    * @param options Lock file options.
-   * @return Lock status, one of `"unlocked"` `"locked"` or `"stale"`.
+   * @return Lock status, one of `"unlocked"`, `"locked"`, or `"stale"`.
    */
   static async isLocked(
     name: File | string,
@@ -240,7 +240,7 @@ export class LockFile {
   }
 
   /**
-   * Asynchronously append the given contents to this lock file.
+   * Asynchronously appends the given contents to this lock file.
    *
    * It is unsafe to call `appendFile()` multiple times on the same file without
    * waiting for the `Promise` to be resolved (or rejected).

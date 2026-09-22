@@ -1,3 +1,4 @@
 # FileSystem Extra
 
-A collection of utilities which extend the node's `fs` module in various ways.
+Re-exports promisified versions of the functions from the node's `fs` module,
+plus a few extra utility functions, such as `scanDir`, `emptyDir`, `touch`, etc.

@@ -1,9 +1,9 @@
 # FileSystem Extra
 
-A collection of packages which extend the node's `fs` module in various ways.
+A collection of packages which extend Node's `fs` module in various ways.
 
-* [FSX](./packages/fsx) &mdash; Re-exports promisified versions of the functions from the `fs` module, plus few extra utility functions, such as `scanDir`, `emptyDir`, `touch`, etc.
-* [FSX File](./packages/fsx-file) &mdash; A library of classes which wrap the node's `fs` module and provide a higher-level object-oriented API around it.
+* [FSX](./packages/fsx) &mdash; Re-exports promisified versions of the functions from the `fs` module, plus a few extra utility functions, such as `scanDir`, `emptyDir`, `touch`, etc.
+* [FSX File](./packages/fsx-file) &mdash; A library of classes which wrap Node's `fs` module and provide a higher-level object-oriented API around it.
 * [FSX LockFile](./packages/fsx-lockfile) &mdash; A lock file library which allows multiple concurrent processes to safely update shared files.
 * [Retry](./packages/retry) &mdash; A library for retrying failed I/O operations.
 
