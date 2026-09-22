@@ -32,17 +32,17 @@ export interface TouchOptions {
  * Updates the access and modification times of the specified file.
  * Creates an empty file if it does not exist, unless `create` is false.
  *
- * @param name The path to the file to touch.
+ * @param path The path to the file to touch.
  * @param options Options for touching the file.
  * @return Whether the file's timestamps were updated or an empty file was created.
  */
 export async function touch(
-  name: string,
+  path: string,
   options: TouchOptions = {},
 ): Promise<boolean> {
   const { create = true, now = new Date() } = options;
   try {
-    await utimes(name, now, now);
+    await utimes(path, now, now);
     return true;
   } catch (err: any) {
     if (err.code !== "ENOENT") {
@@ -53,8 +53,8 @@ export async function touch(
     }
   }
   try {
-    await mkdir(dirname(name), { recursive: true });
-    const fd = await open(name, constants.O_WRONLY | constants.O_CREAT);
+    await mkdir(dirname(path), { recursive: true });
+    const fd = await open(path, constants.O_WRONLY | constants.O_CREAT);
     try {
       await futimes(fd, now, now);
     } finally {
@@ -74,14 +74,14 @@ export async function touch(
  * Updates the access and modification times of the specified file.
  * Creates an empty file if it does not exist, unless `create` is false.
  *
- * @param name The path to the file to touch.
+ * @param path The path to the file to touch.
  * @param options Options for touching the file.
  * @return Whether the file's timestamps were updated or an empty file was created.
  */
-export function touchSync(name: string, options: TouchOptions = {}): boolean {
+export function touchSync(path: string, options: TouchOptions = {}): boolean {
   const { create = true, now = new Date() } = options;
   try {
-    utimesSync(name, now, now);
+    utimesSync(path, now, now);
     return true;
   } catch (err: any) {
     if (err.code !== "ENOENT") {
@@ -92,8 +92,8 @@ export function touchSync(name: string, options: TouchOptions = {}): boolean {
     }
   }
   try {
-    mkdirSync(dirname(name), { recursive: true });
-    const fd = openSync(name, constants.O_WRONLY | constants.O_CREAT);
+    mkdirSync(dirname(path), { recursive: true });
+    const fd = openSync(path, constants.O_WRONLY | constants.O_CREAT);
     try {
       futimesSync(fd, now, now);
     } finally {

@@ -31,16 +31,16 @@ for (const content of ["xy", "", "abc".repeat(20_000)]) {
   test(`writeFile replaces contents with ${content.length} characters`, async (t) => {
     const handle = await fixture(t);
     await handle.writeFile(content);
-    assert.equal(readFileSync(handle.name, "utf8"), content);
+    assert.equal(readFileSync(handle.path, "utf8"), content);
   });
 }
 
 test("appendFile preserves contents, including when appending an empty buffer", async (t) => {
   const handle = await fixture(t);
   await handle.appendFile(Buffer.alloc(0));
-  assert.equal(readFileSync(handle.name, "utf8"), "old contents");
+  assert.equal(readFileSync(handle.path, "utf8"), "old contents");
   await handle.appendFile(" appended");
-  assert.equal(readFileSync(handle.name, "utf8"), "old contents appended");
+  assert.equal(readFileSync(handle.path, "utf8"), "old contents appended");
 });
 
 for (const [name, makeView] of [
@@ -55,10 +55,10 @@ for (const [name, makeView] of [
     assert.deepEqual(toBuffer(view), expected);
     const handle = await fixture(t);
     await handle.writeFile(view);
-    assert.deepEqual(readFileSync(handle.name), expected);
+    assert.deepEqual(readFileSync(handle.path), expected);
     await handle.appendFile(view);
     assert.deepEqual(
-      readFileSync(handle.name),
+      readFileSync(handle.path),
       Buffer.concat([expected, expected]),
     );
   });

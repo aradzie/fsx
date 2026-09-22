@@ -18,35 +18,29 @@ import { readFileHandle, toBuffer, writeFileHandle } from "./util.js";
 /**
  * A `FileHandle` object is a wrapper for a numeric file descriptor.
  * Instances of `FileHandle` are distinct from numeric file descriptors in that
- * they provide an object oriented API for working with files.
+ * they provide an object-oriented API for working with files.
  */
 export class FileHandle {
   static async open(
-    name: string,
+    path: string,
     flags: string | number,
     mode?: string | number | null,
   ): Promise<FileHandle> {
-    return new FileHandle(name, await open(name, flags, mode));
+    return new FileHandle(path, await open(path, flags, mode));
   }
 
-  #name: string;
-  #fd: number;
+  readonly #path: string;
+  readonly #fd: number;
 
-  constructor(name: string, fd: number) {
-    this.#name = name;
+  constructor(path: string, fd: number) {
+    this.#path = path;
     this.#fd = fd;
   }
 
-  /**
-   * Gets file name.
-   */
-  get name(): string {
-    return this.#name;
+  get path(): string {
+    return this.#path;
   }
 
-  /**
-   * Gets file descriptor.
-   */
   get fd(): number {
     return this.#fd;
   }

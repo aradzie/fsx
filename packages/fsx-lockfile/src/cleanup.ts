@@ -19,10 +19,10 @@ function cleanup(): void {
   }
 }
 
-export function track(file: string): void {
-  locks.add(file);
+export function track(path: string): void {
+  locks.add(path);
 }
 
-export function untrack(file: string): void {
-  locks.delete(file);
+export function untrack(path: string): void {
+  locks.delete(path);
 }

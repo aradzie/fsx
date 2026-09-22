@@ -135,11 +135,11 @@ export class Dir extends Entry {
 }
 
 export class File extends Entry {
-  static from(name: string | File): File {
-    if (name instanceof File) {
-      return name;
+  static from(file: string | File): File {
+    if (file instanceof File) {
+      return file;
     } else {
-      return new File(name);
+      return new File(file);
     }
   }
 

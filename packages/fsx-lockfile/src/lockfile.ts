@@ -217,7 +217,7 @@ export class LockFile {
     public readonly file: File,
     public readonly lock: FileHandle,
   ) {
-    track(this.lock.name);
+    track(this.lock.path);
   }
 
   get state(): LockFileState {
@@ -256,20 +256,20 @@ export class LockFile {
   async rollback(): Promise<void> {
     assert(this.#state === LockFileState.LOCKED);
     this.#state = LockFileState.ABORTED;
-    untrack(this.lock.name);
+    untrack(this.lock.path);
     await this.lock.close();
-    await unlink(this.lock.name);
+    await unlink(this.lock.path);
   }
 
   async commit(): Promise<void> {
     assert(this.#state === LockFileState.LOCKED);
     this.#state = LockFileState.COMMITTED;
-    untrack(this.lock.name);
+    untrack(this.lock.path);
     await this.lock.close();
     try {
-      await rename(this.lock.name, this.file.path);
+      await rename(this.lock.path, this.file.path);
     } catch (err) {
-      await unlink(this.lock.name);
+      await unlink(this.lock.path);
       throw err;
     }
   }
