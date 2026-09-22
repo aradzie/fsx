@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { realpath, rename, unlink } from "@sosimple/fsx";
 import type { Encoding, FileHandle } from "@sosimple/fsx-file";
 import { File } from "@sosimple/fsx-file";
@@ -141,7 +141,7 @@ export class LockFile {
   ): Promise<LockFile> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.path, opts.lockName);
+    const lock = await lockFile(file.path, opts.lockName);
     const retry = new Retry(options);
     while (true) {
       const handle = await tryOpenLock(lock);
@@ -184,7 +184,7 @@ export class LockFile {
   ): Promise<"unlocked" | "locked" | "stale"> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.path, opts.lockName);
+    const lock = await lockFile(file.path, opts.lockName);
     try {
       const { mtime } = await lock.stat();
       if (mtime < new Date(Date.now() - opts.staleAfter)) {
@@ -207,7 +207,7 @@ export class LockFile {
   ): Promise<void> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockName(file.path, opts.lockName);
+    const lock = await lockFile(file.path, opts.lockName);
     await lock.delete();
   }
 
@@ -287,17 +287,34 @@ function expand(options: LockFileOptions) {
   };
 }
 
-async function lockName(name: string, lockName: string): Promise<File> {
-  try {
-    name = await realpath(name);
-  } catch {
-    name = resolve(name);
-  }
-  lockName = expandPathTemplate(lockName, name);
-  if (name === lockName) {
+async function lockFile(path: string, lockPathTemplate: string): Promise<File> {
+  path = await canonicalPath(path);
+  const lockPath = expandPathTemplate(lockPathTemplate, path);
+  if (path === (await canonicalPath(lockPath))) {
     throw new Error(`Lock name is the same as file name.`);
   }
-  return new File(lockName);
+  return new File(lockPath);
+}
+
+async function canonicalPath(path: string): Promise<string> {
+  const suffix: string[] = [];
+  let prefix = resolve(path);
+
+  while (true) {
+    try {
+      return resolve(await realpath(prefix), ...suffix);
+    } catch (err: any) {
+      if (err.code !== "ENOENT" && err.code !== "ENOTDIR") {
+        throw err;
+      }
+      const parent = dirname(prefix);
+      if (parent === prefix) {
+        throw err;
+      }
+      suffix.unshift(basename(prefix));
+      prefix = parent;
+    }
+  }
 }
 
 async function tryOpenLock(file: File): Promise<FileHandle | null> {

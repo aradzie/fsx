@@ -2,9 +2,6 @@ import { createHash } from "node:crypto";
 import { parse } from "node:path";
 
 export function expandPathTemplate(template: string, path: string): string {
-  if (template === "[path].lock") {
-    return path + ".lock";
-  }
   const { root, dir, base, name, ext } = parse(path);
   let hash: string | null = null;
   let slug: string | null = null;

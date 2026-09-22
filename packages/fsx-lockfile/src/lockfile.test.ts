@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { relative } from "node:path";
 import test, { afterEach, beforeEach } from "node:test";
+import { symlink } from "@sosimple/fsx";
 import { Dir, File } from "@sosimple/fsx-file";
 import type { RetryOptions } from "@sosimple/retry";
 import { fixedDelay } from "@sosimple/retry";
@@ -115,6 +117,33 @@ test("unlock", async () => {
   assert.strictEqual(await LockFile.isLocked(file), "unlocked");
   assert.strictEqual(await file.exists(), false);
   assert.strictEqual(await lock.exists(), false);
+});
+
+test("reject lock paths that resolve to the target", async () => {
+  const real = new Dir(`${root.path}/real`);
+  const alias = new Dir(`${root.path}/alias`);
+  const target = new File(`${real.path}/file`);
+  await target.write("original");
+  await target.touch({ now: new Date(0) });
+  await symlink(real.path, alias.path, "dir");
+
+  const unsafeLockNames = [
+    "[dir]/./[base]",
+    "[dir]/child/../[base]",
+    "[dir]//[base]",
+    relative(process.cwd(), target.path),
+    `${alias.path}/[base]`,
+  ];
+
+  for (const lockName of unsafeLockNames) {
+    const options = { lockName, retryLimit: 1, delayer: fixedDelay(1) };
+    const expected = { message: "Lock name is the same as file name." };
+
+    await assert.rejects(LockFile.lock(target, options), expected);
+    await assert.rejects(LockFile.isLocked(target, options), expected);
+    await assert.rejects(LockFile.forceUnlock(target, options), expected);
+    assert.strictEqual(await target.read("utf8"), "original");
+  }
 });
 
 test("commit for missing file", async () => {
