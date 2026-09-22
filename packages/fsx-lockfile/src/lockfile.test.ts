@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { relative } from "node:path";
 import test, { afterEach, beforeEach } from "node:test";
-import { symlink } from "@sosimple/fsx";
 import { Dir, File } from "@sosimple/fsx-file";
 import type { RetryOptions } from "@sosimple/retry";
 import { fixedDelay } from "@sosimple/retry";
@@ -119,20 +118,16 @@ test("unlock", async () => {
   assert.strictEqual(await lock.exists(), false);
 });
 
-test("reject lock paths that resolve to the target", async () => {
-  const real = new Dir(`${root.path}/real`);
-  const alias = new Dir(`${root.path}/alias`);
-  const target = new File(`${real.path}/file`);
+test("reject lock paths that normalize to the target", async () => {
+  const target = new File(`${root.path}/target`);
   await target.write("original");
   await target.touch({ now: new Date(0) });
-  await symlink(real.path, alias.path, "dir");
 
   const unsafeLockNames = [
     "[dir]/./[base]",
     "[dir]/child/../[base]",
     "[dir]//[base]",
     relative(process.cwd(), target.path),
-    `${alias.path}/[base]`,
   ];
 
   for (const lockName of unsafeLockNames) {

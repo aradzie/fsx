@@ -1,6 +1,5 @@
 import assert from "node:assert";
-import { basename, dirname, resolve } from "node:path";
-import { realpath, rename, unlink } from "@sosimple/fsx";
+import { rename, unlink } from "@sosimple/fsx";
 import type { Encoding, FileHandle } from "@sosimple/fsx-file";
 import { File } from "@sosimple/fsx-file";
 import type { RetryOptions } from "@sosimple/retry";
@@ -83,6 +82,9 @@ export interface LockFileOptions {
    * - `"/run/lock/[slug]"`           => `"/run/lock/~var~lib~my-file.txt"`
    *
    * The default value is `[path].lock`.
+   *
+   * The expanded lock path must not contain symbolic links. See [[LockFile]]
+   * for the path requirements shared by all operations.
    */
   readonly lockName?: string;
 }
@@ -95,6 +97,14 @@ export enum LockFileState {
 
 /**
  * Synchronizes access to a shared file for multiple concurrent processes.
+ *
+ * Symbolic links and other filesystem aliases are not resolved. Every process
+ * must use the same canonical target path, and the target and expanded lock
+ * paths must not contain symbolic links. When an input path may contain
+ * symbolic links, canonicalize it once before calling any `LockFile` API and
+ * reuse that selected path for file access and later lock operations.
+ * Violating these requirements results in undefined behavior and can break
+ * mutual exclusion or modify the wrong filesystem entry.
  */
 export class LockFile {
   /**
@@ -141,7 +151,7 @@ export class LockFile {
   ): Promise<LockFile> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockFile(file.path, opts.lockName);
+    const lock = lockFile(file, opts.lockName);
     const retry = new Retry(options);
     while (true) {
       const handle = await tryOpenLock(lock);
@@ -184,7 +194,7 @@ export class LockFile {
   ): Promise<"unlocked" | "locked" | "stale"> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockFile(file.path, opts.lockName);
+    const lock = lockFile(file, opts.lockName);
     try {
       const { mtime } = await lock.stat();
       if (mtime < new Date(Date.now() - opts.staleAfter)) {
@@ -207,7 +217,7 @@ export class LockFile {
   ): Promise<void> {
     const opts = expand(options);
     const file = File.from(name);
-    const lock = await lockFile(file.path, opts.lockName);
+    const lock = lockFile(file, opts.lockName);
     await lock.delete();
   }
 
@@ -287,34 +297,12 @@ function expand(options: LockFileOptions) {
   };
 }
 
-async function lockFile(path: string, lockPathTemplate: string): Promise<File> {
-  path = await canonicalPath(path);
-  const lockPath = expandPathTemplate(lockPathTemplate, path);
-  if (path === (await canonicalPath(lockPath))) {
+function lockFile(file: File, lockPathTemplate: string): File {
+  const lock = new File(expandPathTemplate(lockPathTemplate, file.path));
+  if (file.path === lock.path) {
     throw new Error(`Lock name is the same as file name.`);
   }
-  return new File(lockPath);
-}
-
-async function canonicalPath(path: string): Promise<string> {
-  const suffix: string[] = [];
-  let prefix = resolve(path);
-
-  while (true) {
-    try {
-      return resolve(await realpath(prefix), ...suffix);
-    } catch (err: any) {
-      if (err.code !== "ENOENT" && err.code !== "ENOTDIR") {
-        throw err;
-      }
-      const parent = dirname(prefix);
-      if (parent === prefix) {
-        throw err;
-      }
-      suffix.unshift(basename(prefix));
-      prefix = parent;
-    }
-  }
+  return lock;
 }
 
 async function tryOpenLock(file: File): Promise<FileHandle | null> {
