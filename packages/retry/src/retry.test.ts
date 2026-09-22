@@ -43,6 +43,7 @@ test("limit attempts", async () => {
 
 test("limit time", async (t) => {
   t.mock.timers.enable({ apis: ["Date", "setTimeout"] });
+  t.mock.method(performance, "now", () => Date.now());
   {
     const retry = new Retry({
       timeLimit: 10,
@@ -101,8 +102,30 @@ test("limit time", async (t) => {
   }
 });
 
+test("time limit ignores wall-clock changes", async (t) => {
+  let monotonicTime = 100;
+  let wallTime = 1000;
+  t.mock.method(performance, "now", () => monotonicTime);
+  t.mock.method(Date, "now", () => wallTime);
+  const retry = new Retry({
+    timeLimit: 10,
+    delayer: fixedDelay(0),
+  });
+
+  monotonicTime += 5;
+  wallTime += 1000;
+  assert.strictEqual(retry.elapsed, 5);
+
+  monotonicTime += 5;
+  wallTime -= 2000;
+  assert.strictEqual(retry.elapsed, 10);
+  assert.strictEqual(await retry.tryAgain(), false);
+  assert.strictEqual(retry.attempts, 1);
+});
+
 test("pause between attempts", async (t) => {
   t.mock.timers.enable({ apis: ["Date", "setTimeout"] });
+  t.mock.method(performance, "now", () => Date.now());
   const retry = new Retry({
     retryLimit: 10,
     delayer: fixedDelay(10),

@@ -51,6 +51,6 @@ export class Retry {
   }
 
   static now(): number {
-    return Date.now();
+    return performance.now();
   }
 }

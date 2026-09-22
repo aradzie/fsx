@@ -13,3 +13,5 @@ tmp/
 *.tgz
 *.tsbuildinfo
 *~
+
+TODO.*
