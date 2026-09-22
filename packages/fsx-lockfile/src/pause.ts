@@ -1,5 +1,5 @@
+import { setTimeout } from 'node:timers/promises';
+
 export function pause(millis: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, millis);
-  });
+  return setTimeout(millis);
 }
